@@ -5,6 +5,15 @@ logs
 # Python
 .env
 venv
+__pycache__
+
+# Personal
+auth
+
+# DB
+*.db
+*.sql*
+migrations
 
 dist
 dist-ssr
