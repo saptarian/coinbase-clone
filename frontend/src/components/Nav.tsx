@@ -1,4 +1,4 @@
-import coinbaseLogo from '../assets/logo-coinbase.svg'
+import coinbaseLogo from 'root/assets/logo-coinbase.svg'
 
 function Nav() {
 

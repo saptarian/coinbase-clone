@@ -7,7 +7,7 @@ from app.extensions import db
 
 
 class UserService:
-    def get_user_by_id(self, user_id):
+    def get_user_by_id(self, user_id: int) -> User:
         return User.query.get(user_id)
 
 

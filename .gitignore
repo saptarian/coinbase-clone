@@ -9,6 +9,7 @@ __pycache__
 
 # Personal
 auth
+frontend/src/app
 
 # DB
 *.db

@@ -1,15 +1,12 @@
-import { useState } from 'react'
-import { Signup, Signin, Explore, Nav } from './components'
-
-import './App.css'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import Router from './routes'
 
 function App() {
-  // const [count, setCount] = useState(0)
-
+  const queryClient = new QueryClient()
   return (
-    <>
-      <Explore />
-    </>
+    <QueryClientProvider client={queryClient}>
+      <Router />
+    </QueryClientProvider>
   )
 }
 

@@ -51,8 +51,8 @@ def modify_token():
 def protected():
     current_user = user_service.get_user_by_id(get_jwt_identity())
     jti = get_jwt()["jti"]
-    return jsonify(message=f"Howdy {current_user.first_name} {current_user.last_name}",
-        jti=jti)
+    message = current_user.to_dict()
+    return jsonify(message=message, jti=jti)
 
 
 # We are using the `refresh=True` options in jwt_required to only allow

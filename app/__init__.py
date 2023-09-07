@@ -15,9 +15,12 @@ def create_app() -> Flask:
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
-    cors.init_app(app)
     jwt.init_app(app)
     bcrypt.init_app(app)
+
+    # cors.init_app(app)
+    # Allow requests only from a specific frontend domain
+    cors.init_app(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
     # Callback function to check if a JWT exists in the database blocklist
     @jwt.token_in_blocklist_loader

@@ -1,8 +1,12 @@
-import { Nav } from './'
-import coinbaseLogo from '../assets/logo-coinbase.svg'
+import Nav from 'app/components/Nav'
+import coinbaseLogo from 'app/assets/logo-coinbase.svg'
+
+import styled from 'styled-components/macro'
+import tw from 'twin.macro'
 
 
-function Explore() {
+export default function Explore() {
+
 	return (
 		<>
       <Nav />
@@ -588,5 +592,3 @@ function Explore() {
 
 	)
 }
-
-export default Explore
