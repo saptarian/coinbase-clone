@@ -1,66 +1,53 @@
-import coinbaseLogo from 'root/assets/logo-coinbase.svg'
+import logo from '$/assets/logo-coinbase.svg'
+import { navLinks } from '$/constants'
 
-function Nav() {
-
+function Nav({isAuthenticated} : {isAuthenticated: boolean}) {
   return (
-    <>
-      <header className="flex items-center
-        px-6 py-4 lg:max-w-6xl gap-6 mx-auto justify-between ">
-        <a href="/" className="">
-          <img src={coinbaseLogo} alt="coinbase logo" width="100"
-            className="" />
+    <header className="border-b sticky top-0 bg-white">
+      <div className="flex items-center gap-6 mx-auto
+       justify-between px-6 py-4 lg:max-w-6xl ">
+        <a href="/" >
+          <img src={logo} alt="logo" width="100"/>
         </a>
-        <div className="gap-6 flex items-center shrink-0">
+        <div className="gap-12 flex items-center">
           <nav className="gap-6 font-medium grow shrink-0
-            max-lg:hidden flex flex-row justify-end"
-          >
-            <a href="#" className="
-              "
-            >Explore</a>
-            <a href="#" className="
-              "
-            >Learn</a>
-            <a href="#" className="
-              "
-            >Individuals</a>
-            <a href="#" className="
-              "
-            >Businesses</a>
-            <a href="#" className="
-              "
-            >Developers</a>
-            <a href="#" className="
-              "
-            >Company</a>
+            max-lg:hidden flex flex-row justify-end">
+            {navLinks.map(item => 
+              <div key={item.label}>
+                <a href={item.href} 
+                  className="hover:border-b-2 py-6 border-gray-800">
+                  {item.label}
+                </a>
+              </div>
+            )}
           </nav>
-          <div className="space-x-3 ml-4
-            ">
-            <button className="bg-inherit text-gray-900 rounded-full 
-              font-medium px-7 py-2 hover:bg-slate-100 text-black
-              ring-1 ring-gray-300 text-sm max-lg:hidden">
-              <a href="#">Sign In</a>
-            </button>
-            <button className="bg-blue-600 rounded-full text-white 
-              font-medium px-7 py-2 hover:bg-blue-700
-              text-sm">
-              <a href="#">Get started</a>
-            </button>
+          <div className="flex gap-3">
+            {isAuthenticated 
+              ? (
+                <a className="primary-btn-sm" href="/trade">Trade
+                </a>
+                ) 
+              : (<>
+                  <a className="rounded-btn bg-inherit text-gray-900
+                    px-7 py-2 hover:bg-slate-100 text-black
+                    ring-1 ring-gray-300 text-sm max-lg:hidden" 
+                    href="/signin">Sign In
+                  </a>
+                  <a className="primary-btn-sm" 
+                    href="/signup">Get started
+                  </a>
+                </>
+                )
+            }
           </div>
           <button className="space-y-1 lg:hidden">
-            <div className="bg-gray-600 h-[2px] w-4
-              "
-            ></div>
-            <div className="bg-gray-600 h-[2px] w-4
-              "
-            ></div>
-            <div className="bg-gray-600 h-[2px] w-4
-              "
-            ></div>
+            <div className="bg-gray-600 h-[2px] w-4"></div>
+            <div className="bg-gray-600 h-[2px] w-4"></div>
+            <div className="bg-gray-600 h-[2px] w-4"></div>
           </button>
         </div>
-      </header>
-      <hr />
-    </>
+      </div>
+    </header>
   )
 }
 

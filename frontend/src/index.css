@@ -1,3 +1,75 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	scroll-behavior: smooth;
+	@apply border-gray-200;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	@apply font-medium;
+}
+
+@layer components {
+	.container-section {
+		@apply bg-white rounded-md border w-full;
+	}
+}
+
+@layer utilities {
+	.btn-bg-blue {
+		@apply bg-blue-600 hover:bg-blue-700 
+	}
+	.rounded-btn {
+		@apply rounded-full w-full whitespace-nowrap;
+		@apply font-medium cursor-pointer;
+	}
+	.primary-btn:not(:disabled) {
+		@apply rounded-btn btn-bg-blue;
+		@apply text-white px-7 py-3;
+	}
+	.primary-btn:disabled {
+		@apply rounded-full;
+		@apply px-7 py-3 w-full whitespace-nowrap;
+		@apply bg-blue-300 text-white font-medium;
+	}
+	.primary-btn-sm:not(:disabled) {
+		@apply rounded-btn btn-bg-blue;
+		@apply text-white px-7 py-2 text-sm;
+	}
+	.secondary-btn {
+		@apply rounded-btn;
+		@apply bg-gray-200/75 hover:bg-gray-300 text-black;
+		@apply px-7 py-3;
+	}
+	.secondary-btn-sm {
+		@apply rounded-btn;
+		@apply bg-gray-200/75 hover:bg-gray-300 text-black;
+		@apply px-7 py-2 text-sm;
+	}
+	.link {
+		@apply text-sky-500 hover:text-sky-600;
+	}
+	.input-ring {
+		@apply border py-3 px-5;
+		@apply w-full hover:bg-slate-100;
+	}
+	.input-rounded {
+		@apply input-ring rounded-lg;
+	}
+	.input-normal {
+		@apply input-ring border-gray-400 outline-sky-600;
+	}
+	.input-simple {
+		@apply border border-gray-400 outline-sky-600;
+		@apply py-3 px-5 w-full rounded-[3px] h-16;
+	}
+	.danger-btn {
+		@apply bg-white text-red-600 border font-bold px-7 py-3 rounded-lg;
+		@apply hover:bg-red-600 hover:text-white hover:shadow-md cursor-pointer;
+	}
+}

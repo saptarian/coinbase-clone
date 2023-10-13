@@ -26,7 +26,6 @@ class Transaction(db.Model):
         # Convert transaction object to a dictionary for JSON response
         return {
             'id': self.id,
-            'user_id': self.user_id,
             'crypto_id': self.crypto_id,
             'transaction_type': self.transaction_type,
             'amount': float(self.amount),

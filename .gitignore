@@ -14,7 +14,6 @@ frontend/src/app
 # DB
 *.db
 *.sql*
-migrations
 
 dist
 dist-ssr

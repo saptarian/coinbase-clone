@@ -3,42 +3,34 @@ import {
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { getItem } from './localStorage'
+import { getToken } from 'lib/storage'
+import { type ModAxiosResponse } from '$/types'
 
-export interface ConsoleError {
-  status: number
-  data: unknown
-}
 
 export const requestInterceptor = (
   config: InternalAxiosRequestConfig
-): InternalAxiosRequestConfig => {
-  const token = getItem<string>('token')
+): InternalAxiosRequestConfig => 
+{
+  const token = getToken()
+
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`)
   }
   return config
 }
 
-export const successInterceptor = (response: AxiosResponse): AxiosResponse => {
-  return response
+export const successInterceptor = (response: AxiosResponse): ModAxiosResponse => {
+  return {
+    status: response.status,
+    message: response.data?.message ?? response.data?.msg ?? '',
+    data: response.data,
+  }
 }
 
 export const errorInterceptor = async (error: AxiosError): Promise<void> => {
-  if (error.response?.status === 401) {
-    await Promise.reject(error)
-  } else {
-    if (error.response) {
-      const errorMessage: ConsoleError = {
-        status: error.response.status,
-        data: error.response.data,
-      }
-      console.error(errorMessage)
-    } else if (error.request) {
-      console.error(error.request)
-    } else {
-      console.error('Error', error.message)
-    }
-    await Promise.reject(error)
-  }
+  await Promise.reject({
+    status: error.response?.status ?? 414,
+    message: error.response?.data.message ?? error.response?.data.msg ?? error.message,
+    data: error.response ?? error,
+  })
 }

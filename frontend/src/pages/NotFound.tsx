@@ -1,7 +1,4 @@
-import styled from 'styled-components/macro'
-import tw from 'twin.macro'
-
-export default function NotFound() {
+function NotFound() {
   return (
     <div>
       <h2>404 - Not Found</h2>
@@ -9,3 +6,5 @@ export default function NotFound() {
     </div>
   )
 }
+
+export default { element: <NotFound /> }

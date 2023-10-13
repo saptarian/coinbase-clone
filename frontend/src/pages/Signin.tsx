@@ -1,108 +1,117 @@
-import React from 'react'
-import { Navigate } from 'react-router'
-import { type SubmitHandler, useForm } from 'react-hook-form'
-import { yupResolver } from '@hookform/resolvers/yup'
+import * as React from 'react'
+import type { 
+  LoaderFunctionArgs 
+} from "react-router-dom";
+import { 
+  Form,
+  redirect,
+  useLocation, 
+  useNavigation,
+  useActionData,
+} from "react-router-dom";
+import { updateAuth } from 'lib/storage'
+import { 
+  signin,
+  isLoggedIn,
+  validateIdentity,
+} from 'lib/auth'
+import { Button, Input } from '$/components'
+import logo from '$/assets/logo-coinbase.svg'
 
-import { loginSchema } from 'root/lib/validation';
-import { useLoginQuery } from 'root/services/queries/auth.query'
-import useAuthStore from 'root/store/useAuthStore'
-import { type LoginBody } from 'root/types/auth'
-import { setItem } from 'root/lib/localStorage'
 
-import styled from 'styled-components/macro'
-import tw from 'twin.macro'
+const action = async ({ request }: LoaderFunctionArgs) => {
+  const formData = await request.formData()
+  const email = formData.get("email") as string | null
+  const password = formData.get("password") as string | null
 
-import coinbaseLogo from 'app/assets/logo-coinbase.svg'
-
-export default function Signin() {
-
-  const { setIsAuthenticated } = useAuthStore((state) => state)
-  const { isLoading, mutateAsync: login, isError, error, data } = useLoginQuery()
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginBody>({ resolver: yupResolver(loginSchema) })
-
-  const onSubmit = async (event) => {
-    event.preventDefault()
-    const { email, password } = event.target
-    const formData = {
-      email: email.value,
-      password: password.value
-    }
-    await login(formData)
-    setIsAuthenticated(true)
-
-    if (!isError && data) {
-      setItem('token', data.access_token)
-      return <Navigate to="/explore" />
+  if (!email || !password) {
+    return {
+      erorr: { message: "Please check your input" },
+      ok: false,
     }
   }
 
-  console.log("data", data)
-  // console.log("isLoading", data)
-  // console.log("isError", isError)
-  // console.log("mutateAsync", login)
+  try {
+    const resp = await signin({email, password})
+    updateAuth({token: resp.data?.access_token})
+    
+    const data = await validateIdentity()
+    if (data.status == 202) 
+      return redirect("/setup/phone")
+  }
+  catch (error) {
+    return { error, ok: false }
+  }
+
+  const redirectTo = formData.get("redirectTo") as string | null
+  return redirect(redirectTo || "/trade")
+}
+
+
+function Signin() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const from = params.get("from") || "/";
+
+  const actionData = useActionData()
+  const navigation = useNavigation()
+  const isLoggingIn = navigation.formData != null
+
 
 	return (
-		<>
-      {}
-      <SigninForm 
-        >
-        <img src={coinbaseLogo} alt="coinbase logo" width="120"
-          className="sm:mb-8 mb-3" 
-        />
-        <h1 className="text-2xl
-          "><strong>Sign in to Coinbase</strong>
-        </h1>
-        <p className="text-sm/4 text-slate-500
-          ">
-          Not your device? Use a private or incognito window to sign in</p>
-        <form onSubmit={onSubmit}
-        >
-          <p className="text-sm
-            "><strong>Email</strong>
-          </p>
-          <input type="email" name="email" className="ring-1 ring-gray-500 
-            rounded-lg h-12 px-4 hover:bg-slate-100" 
-            placeholder="Your email address" 
-          />
-          <p className="text-sm
-            "><strong>Password</strong>
-          </p>
-          <input type="password" name="password" className="ring-1 ring-gray-500 
-            rounded-lg h-12 px-4 hover:bg-slate-100" 
-            placeholder="" 
-          />
-          <input type="submit" value="Continue" />
-          <label className="text-center
-            ">
-            <a href="#" className="text-sm  
-              text-sky-500 hover:text-sky-600">
-              Privacy policy
-            </a>
-          </label>
-        </form>
-      </SigninForm>
-		</>
+  <main className="flex flex-col max-w-sm sm:ring-1
+    sm:ring-gray-900/10 sm:rounded-2xl gap-4
+    mx-auto sm:p-10 sm:mt-8 p-6">
+    <div>
+      <a href="/" className="inline-block sm:mb-8 mb-3">
+        <img src={logo} alt="logo" width="120"/>
+      </a>
+    </div>
+    <h1 className="text-2xl">
+      <strong>Sign in to Coinbase</strong>
+    </h1>
+    <p className="text-sm/4 text-slate-500">
+      Not your device? Use a private or incognito window to sign in</p>
+    <Form method="post" className="mt-4 flex flex-col gap-3" replace>
+      <input type="hidden" name="redirectTo" value={from} />
+      <p className="text-sm text-gray-700"> 
+        <strong>Email</strong>
+      </p>
+      <div className="">
+        <Input type="text" name="email" placeholder="Your email address" required />
+      </div>
+      <p className="text-sm text-gray-700">
+        <strong>Password</strong>
+      </p>
+      <div className="">
+        <Input type="password" name="password" novalidate required />
+      </div>
+      <Button text="Continue" type="submit" isLoading={isLoggingIn} />
+      <div className="text-center py-1">
+        <p>Don't have an acocunt? <span>
+          <a href="/signup" className="link">Sign up</a></span>
+        </p>
+        <a href="#" className="link text-sm">
+          <small>Privacy policy</small>
+        </a>
+      </div>
+    </Form>
+    {actionData?.error && 
+      (<div className="bg-red-50 shadow-md rounded-lg border
+        text-red-700 text-center py-3 w-full relative">
+        {actionData.error.message}
+       </div> )}
+  </main>
 	)
 }
 
-const SigninForm = styled.main`
-  ${tw`flex flex-col max-w-sm sm:ring-1
-  sm:ring-gray-900/10 sm:rounded-2xl gap-4
-  mx-auto sm:p-10 sm:mt-8 p-6`}
+export default { 
+  loader() {
+    if (isLoggedIn())
+      return redirect("/trade")
 
-  & {
-    form {
-      ${tw`mt-4 flex flex-col gap-4`}
-    }
-    input[type="submit"] {
-      ${tw`bg-blue-600
-        rounded-full text-white py-3
-        cursor-pointer font-medium`}
-      &:hover { ${tw`bg-blue-700`} }
-    }
-  }
-`
+    return {ok: true}
+  }, 
+  action,
+  element: <Signin /> 
+}

@@ -22,7 +22,6 @@ class Wallet(db.Model):
         # Convert wallet object to a dictionary for JSON response
         return {
             'id': self.id,
-            'user_id': self.user_id,
             'crypto_id': self.crypto_id,
             'balance': float(self.balance),
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')

@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from app.config import get_config
 from app.extensions import db, migrate, cors, jwt, bcrypt
@@ -20,7 +21,9 @@ def create_app() -> Flask:
 
     # cors.init_app(app)
     # Allow requests only from a specific frontend domain
-    cors.init_app(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+    cors.init_app(app, resources={r"/*": {
+        "origins": os.getenv('BASE_DOMAIN', "http://localhost:5173")
+    }})
 
     # Callback function to check if a JWT exists in the database blocklist
     @jwt.token_in_blocklist_loader

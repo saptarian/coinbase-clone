@@ -1,6 +1,7 @@
-import { BACKEND_SERVER } from './config'
-
-import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
+import axios, {
+  type AxiosInstance, 
+  type AxiosRequestConfig 
+} from 'axios'
 import {
   errorInterceptor,
   requestInterceptor,
@@ -8,9 +9,8 @@ import {
 } from './interceptors'
 
 const axiosRequestConfig: AxiosRequestConfig = {
-  baseURL: BACKEND_SERVER,
-  timeout: 10000,
-  responseType: 'json',
+  baseURL: import.meta.env.VITE_API_BACKEND_SERVER,
+  timeout: 5000,
   headers: {
     'Content-Type': 'application/json'
   },

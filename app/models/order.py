@@ -28,7 +28,6 @@ class OrderBook(db.Model):
         # Convert order object to a dictionary for JSON response
         return {
             'id': self.id,
-            'user_id': self.user_id,
             'crypto_id': self.crypto_id,
             'order_type': self.order_type,
             'amount': float(self.amount),
