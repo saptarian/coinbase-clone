@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
-
+from app.decorators import user_id_required
 from app.services.order_service import OrderService
 
 
@@ -10,24 +10,58 @@ order_service = OrderService()
 
 @orderbook_bp.route('/', methods=['POST'])
 @jwt_required()
-def create_order():
+@user_id_required
+def create_order(user_id):
     data = request.get_json()
 
     # Validate the input data
-    if 'user_id' not in data or 'crypto_id' not in data or 'order_type' not in data or 'amount' not in data or 'price' not in data:
+    if 'asset_symbol' not in data \
+    or 'wallet_symbol' not in data \
+    or 'order_type' not in data \
+    or 'total' not in data \
+    or data['asset_symbol'] == data['wallet_symbol']:
         return jsonify({'message': 'Missing required fields'}), 400
 
-    user_id = data['user_id']
-    crypto_id = data['crypto_id']
-    order_type = data['order_type']
-    amount = data['amount']
-    price = data['price']
-
     # Ensure that user_id, crypto_id, and other fields are valid before creating an order
-    # Implement your validation logic here
+    # Implement validation logic here
 
-    order = order_service.create_order(user_id, crypto_id, order_type, amount, price)
-    return jsonify({'message': 'Order created successfully'})
+    new_order = order_service.create_order(
+        user_id=user_id, 
+        asset_symbol=data['asset_symbol'], 
+        total=data['total'],
+        wallet_symbol=data['wallet_symbol'],
+        order_type=data['order_type']
+    )
+    if not new_order:
+        return jsonify({'message': 'Cannot create order'}), 400
+
+    return new_order.to_dict()
+
+
+@orderbook_bp.route('/complete', methods=['POST'])
+@jwt_required()
+@user_id_required
+def complete_order(user_id):
+    data = request.get_json()
+
+    # Validate the input data
+    if 'uuid' not in data:
+        return jsonify({'message': 'Missing order id'}), 400
+
+    transaction_order = order_service.set_complete_order(
+        user_id=user_id, 
+        uuid=data['uuid']
+    )
+    if not transaction_order:
+        return jsonify({'message': 'Cannot complete order'}), 400
+
+    new_transaction, fulfilled_order = transaction_order
+    new_transaction = new_transaction.to_dict()
+    fulfilled_order = fulfilled_order.to_dict()
+    new_transaction.update(fulfilled_order)
+    # new_transaction.pop('uuid')
+    # fulfilled_order.pop('id')
+    return jsonify(new_transaction)
 
 
 @orderbook_bp.route('/<int:order_id>', methods=['GET'])

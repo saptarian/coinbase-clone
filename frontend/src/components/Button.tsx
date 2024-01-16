@@ -1,31 +1,31 @@
 import Spinner from './Spinner'
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  text: string
+
+interface ButtonProps extends
+React.ButtonHTMLAttributes<HTMLButtonElement> {
+  height?: string
+  width?: string
   isLoading?: boolean
-  className?: string
-  children?: React.ReactNode
 }
 
 const Button: React.FC<ButtonProps> = ({
-  text,
-  isLoading,
-  className,
-  children,
-  disabled,
-  height,
-  ...rest
-}) => (
+  isLoading, children, disabled, height, width, ...rest
+}) => 
+(
   <button 
-    type="button" 
-    className={className ? className : "primary-btn"} 
+    className="primary-btn w-full"
     disabled={disabled || isLoading}
-    style={{height: height ?? '3rem'}}
+    style={{
+      height: height ?? '3rem',
+      width: width ?? ''
+    }}
     {...rest}
   >
-    {isLoading ? <Spinner /> : children ?? text}
+    {isLoading ? (
+      <Spinner className="max-h-full" />
+    ) : children}
   </button>
 )
+
 
 export default Button

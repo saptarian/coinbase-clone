@@ -4,12 +4,14 @@ logs
 
 # Python
 .env
+.flaskenv
 venv
 __pycache__
 
 # Personal
 auth
 frontend/src/app
+app/uploads
 
 # DB
 *.db
@@ -29,3 +31,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+celerybeat-schedule.*
+migrations

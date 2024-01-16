@@ -1,5 +1,6 @@
 import Spinner from './Spinner'
 
+
 function Loader() {
   return (
     <div className="m-auto w-full h-screen text-center 
@@ -16,5 +17,6 @@ function Loader() {
     </div>
   )
 }
+
 
 export default Loader

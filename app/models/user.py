@@ -49,7 +49,7 @@ class User(db.Model, Base):
         return {
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'diplay_name': self.display_name,
+            'display_name': self.display_name,
             'email': self.email,
             'public_id': self.public_id,
             'email_verified': self.email_verified,

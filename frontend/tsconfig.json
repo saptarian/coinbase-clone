@@ -18,7 +18,13 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Alias */
+    "paths": {
+      "@/*": ["./src/*"],
+      "app/*": ["./src/app/*"],
+    }
   },
   "include": ["src"],
   "exclude": ["src/app"],

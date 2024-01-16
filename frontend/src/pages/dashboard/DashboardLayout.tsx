@@ -1,61 +1,107 @@
-import * as React from 'react'
+import React from 'react'
 import { 
   Outlet, 
-  redirect,  
+  useParams,
+  useLocation,
+  useLoaderData,
+  ScrollRestoration,
 } from 'react-router-dom'
-import {
-  Footer,
-  Headbar,
-  Sidebar,
-  MobileMenu, 
-} from './components'
-import { updateAuth } from 'lib/storage'
-import { validateIdentity } from 'lib/auth'
-import { isTokenExpired } from 'lib/validation'
+
+import Footer from './components/Footer'
+import Headbar from './components/Headbar'
+import Sidebar from './components/Sidebar'
+import MobileMenu from './components/MobileMenu'
+
+import { UserDataRequired } from '@/types'
+import { sidebarLinks } from '@/constants'
+import { useSessionTimeout } from '@/lib/hooks'
+import { DashboardContext, DashboardContextType } from '@/lib/context'
+import { storeUser } from '@/lib/storage'
+import { fetchAvatar } from '@/lib/server'
 
 
-const loader = async ({ request }: LoaderFunctionArgs) => {
-  const redirectWithFrom = () => {
-    let params = new URLSearchParams()
-    params.set("from", new URL(request.url).pathname)
-    return redirect('/signin?' + params.toString())
-  }
+const TIME_IDLE = 1000 * 60 * 45 // 45 Minutes
 
-  try {
-    let data = await validateIdentity()
-    // redirect if identity was not created
-    if (data.status == 202) 
-      return redirect("/setup/phone")
+const addtionalTitle = [
+  { path: "/profile", label: "Profile" },
+  { path: "/transactions", label: "Transactions" },
+  { path: "/settings", label: "Settings" },
+]
 
-    return { ok: true }
-  }
-  catch (error) {
-    if (401 == error.status || 422 == error.status) {
-      updateAuth(null)
-      return redirectWithFrom()
+export function DashboardLayout() 
+{
+  const userData = useLoaderData() as UserDataRequired
+  const [avatar, setAvatar] = 
+    React.useState(userData.avatar)
+  const {name: slug} = useParams<'name'>()
+  useSessionTimeout(TIME_IDLE)
+
+  const {pathname} = useLocation()
+  const [from, setFrom] = React.useState('/trade')
+
+  const navItem = [
+    ...sidebarLinks, 
+    ...addtionalTitle
+  ].find(({path}) => 
+    pathname.startsWith(path))
+
+  React.useEffect(() => {
+    if (!isAssetViewPage(pathname)) {
+      setFrom(pathname)
     }
-    console.warn(error)
-    return { error, ok: false }
-  }
-}
+  }, [pathname])
 
-function DashboardLayout() {
+  const context: DashboardContextType = 
+    {from, slug, pathname, avatar, ...userData}
+  // console.log('DashboardLayout.render', context)
+
+  React.useEffect(() => {
+    if (userData.user.photo_url && !avatar) {
+      fetchAvatar().then((resp) => {
+        const blob = new Blob([resp.data],{type: 'image/png'})
+        if (blob.size >= 1024) {
+          const reader = new FileReader
+          reader.onload = () => {
+            if (typeof reader.result === 'string') {
+              storeUser({avatar: reader.result})
+              setAvatar(reader.result)
+            }
+            // console.log('reader.onload', blob)
+          }
+          reader.readAsDataURL(blob)
+        }
+      })
+    }
+  }, [])
+
 
   return (
-    <div className="md:flex">
-      <MobileMenu />
-      <Sidebar />
-      <div className="min-h-screen md:bg-slate-100 
-        w-full overflow-y-auto">
-        <Headbar />
-        <Outlet />
-        <Footer />
+    <DashboardContext.Provider value={context}>
+      <div className="flex flex-col-reverse md:flex-row divide-x">
+        <Sidebar navItems={sidebarLinks} />
+        <MobileMenu showTradeButton={
+          isAssetViewPage(pathname)
+        }/>
+        <div className="md:bg-slate-100 min-h-screen md:grow 
+          flex flex-col overflow-x-hidden">
+          <Headbar 
+            showGoBack={isAssetViewPage(pathname)}
+            showSearch={pathname.indexOf('/trade') !== 0} 
+            title={navItem?.label}
+          />
+          {userData.user?.public_id ? (
+            <Outlet context={context} />
+          ) : ''}
+          <Footer />
+        </div>
+        <ScrollRestoration />
       </div>
-    </div>
+    </DashboardContext.Provider>
   )
 }
 
-export default { 
-  loader,
-  element: <DashboardLayout /> 
+
+function isAssetViewPage(path: string) {
+  return path.indexOf('/price') === 0 || 
+         path.indexOf('/accounts') === 0
 }

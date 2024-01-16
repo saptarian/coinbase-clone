@@ -10,10 +10,10 @@ import {
 
 const axiosRequestConfig: AxiosRequestConfig = {
   baseURL: import.meta.env.VITE_API_BACKEND_SERVER,
-  timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json'
-  },
+  timeout: 15000,
+  // headers: {
+  //   'Content-Type': 'application/json'
+  // },
 }
 
 const api: AxiosInstance = axios.create(axiosRequestConfig)

@@ -1,137 +1,73 @@
-import * as React from 'react'
-import type { 
-  LoaderFunctionArgs 
-} from "react-router-dom";
+import React from 'react'
+import { Form, useNavigation, useLoaderData } from 'react-router-dom'
 import { 
-  Form,
-  redirect,
-  useNavigation,
-  useLoaderData,
-} from 'react-router-dom'
-import { 
+  YEAR_MIN,
+  YEAR_MAX,
   addressForm, 
   identityForm, 
   monthNameValue,
   useAppForAnswer,
   dateOfBirthForm,
+  postalCodePattern,
   sourceOfFundsAnswer,
   employmentStatusAnswer
-} from '$/constants'
-import { Button, Input } from '$/components'
-import { 
-  getUser,
-  createIdentity, 
-  validateIdentity, 
-} from 'lib/auth'
-import { queryClient } from 'lib/queries'
+} from '@/constants'
+
+import Button from '@/components/Button'
+import FormInput from '@/components/FormInput'
+import SignoutButton from '@/components/SignoutButton'
+import { isEveryInputOK } from '@/lib/validation'
+import { FullName } from "@/types";
 
 
-interface FormInput {
-  first_name: string
-  last_name: string
-  month: string
-  day: string
-  year: string
-  street: string
-  city: string
-  postal_code: string
-  country: string
-  use_app_for: string
-  source_of_funds: string
-  employment_status: string
+const initial = {
+  first_name: '', last_name: '',
+  month: '', day: '', street: '', city: '',
+  source_of_funds: '', employment_status: '',
+  year: '', postal_code: '', country: '', use_app_for: '',
 }
 
+type FormValues = typeof initial
 
-const loader = async () => {
-  try {
-    const resp = await validateIdentity()
-    if (resp.status == 202) {
-      const data = await getUser()
-      return { data, ok: true }
-    }
-  }
-  catch (error) {
-    console.warn(error)
-    return { error, ok: false }
-  }
-  return redirect("/trade")
-}
 
-const action = async ({ request }: LoaderFunctionArgs) => {
-  const formData = await request.formData()
-
-  // TODO: Doing some validation check before hit the server
-
-  const month = formData.get("month")
-  const day = formData.get("day")
-  const year = formData.get("year")
-  const date_of_birth = `${year}-${month}-${day}`
-
-  const body = {
-    identity: {
-      date_of_birth,
-    },
-    address: {
-      street: formData.get("street"),
-      city: formData.get("city"),
-      postal_code: formData.get("postal_code"),
-      country: formData.get("country"),
-    },
-    analytic: {
-      use_app_for: formData.get("use_app_for"),
-      source_of_funds: formData.get("source_of_funds"),
-      employment_status: formData.get("employment_status"),
-    },
-  }
-
-  try {
-    await createIdentity(body)
-  }
-  catch (error) {
-    return { error, ok: false }
-  }
-
-  return redirect("/trade")
-}
-
-function validateInput (formInput: FormInput): boolean {
-  if (Object.entries(formInput).length != 12)
-    return false
-
-  else if (Object.values(formInput).some(val => val === ''))
-    return false
-
-  // TODO: more validate, isnumber, value length
-
-  return true
-}
-
-function SetupIdentity() {
-  const [canSubmit, setCanSubmit] = React.useState<boolean>(false)
-  const [formInput, setFormInput] = React.useState<FormInput>({})
-
+export function SetupIdentity() {
+  const [formInput, setFormInput] = 
+    React.useState(initial)
   const navigation = useNavigation()
-  const isLoading = navigation.formData != null
-  const loaderData = useLoaderData()
+  const isSubmiting = navigation.formData != null
+  const { user } = useLoaderData() as {user: FullName} ?? {user:{}}
 
-  function onChange ({target}) { 
+  function handleChange (
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) { 
     setFormInput({
       ...formInput,
-      [target.name]: target.value
+      [event.target.name]: event.target.value
     })
   }
 
   React.useEffect(() => {
     setFormInput({
       ...formInput,
-      first_name: loaderData?.data?.data?.first_name,
-      last_name: loaderData?.data?.data?.last_name
+      first_name: user?.first_name ?? '',
+      last_name: user?.last_name ?? ''
     })
   }, [])
 
-  React.useEffect(() => {
-    setCanSubmit(validateInput(formInput))
-  }, [formInput])
+  const isStringAboveZero = (val: string): boolean => {
+    return Boolean(parseInt(val) > 0)
+  }
+
+  const isSubmitReady = isEveryInputOK<FormValues>(formInput, {
+    month: (val) => isStringAboveZero(val) 
+                    && Boolean(parseInt(val) <= 12),
+    day: (val) => isStringAboveZero(val) 
+                  && Boolean(parseInt(val) <= 31),
+    year: (val) => Boolean(parseInt(val) >= YEAR_MIN) 
+                   && Boolean(parseInt(val) <= YEAR_MAX),
+    postal_code: (val) => new RegExp(postalCodePattern).test(val),
+  })
+
 
 	return (
 		<main className="py-6 px-4">
@@ -140,7 +76,8 @@ function SetupIdentity() {
       </h1>
       <p className="text-gray-500 mb-5 block">
         Financial regulations require us verify your
-        identity. <span><a href="#" className="link">
+        identity. <span><a href="https://google.com"
+          className="link" target="_blank">
           Learn more</a>
         </span>
       </p>
@@ -148,13 +85,13 @@ function SetupIdentity() {
         <div className="flex flex-col md:flex-row gap-5">
           <section className="w-full">
             <div className="gap-3 md:gap-2 mb-8 flex flex-col md:flex-row">
-              {identityForm.map(item => (
-                <div key={item.name}>
-                  <Label label={item.caption} />
-                  <Input 
-                    name={item.name}
-                    type={item.type}
-                    value={formInput[item.name]}
+              {identityForm.map(({name, caption, type}) => (
+                <div key={name}>
+                  <Label label={caption} />
+                  <FormInput 
+                    name={name}
+                    type={type}
+                    value={formInput[name]}
                     className="input-simple"
                     disabled
                   />
@@ -168,22 +105,23 @@ function SetupIdentity() {
                   name="month"
                   defaultLabel="Month"
                   value={formInput['month']}
-                  onChange={onChange}
-                  options={[...new Set(
-                    monthNameValue.map(({name, value}) => (
-                      {value, key: name, label: name}
-                    ))
-                  )]}
+                  onChange={handleChange}
+                  options={monthNameValue.map(
+                    ({name, value}) => (
+                      {value, label: name}
+                    )
+                  )}
                 />
               </div>
-              {dateOfBirthForm.map(({...props}) => (
+              {dateOfBirthForm.map(({name, ...props}) => (
                 <div 
-                  key={props.name}
+                  key={name}
                   className="w-[12rem]">
-                  <Input 
+                  <FormInput 
                     {...props}
-                    value={formInput[props.name]}
-                    onChange={onChange}
+                    name={name}
+                    value={formInput[name]}
+                    onChange={handleChange}
                     className="input-simple"
                   />
                 </div>
@@ -191,15 +129,16 @@ function SetupIdentity() {
             </div>
             <Label label="Street address" />
             <div className="flex gap-2 flex-wrap mb-8">
-              {addressForm.map(({...props}) => (
+              {addressForm.map(({name, width, ...props}) => (
                 <div 
-                  key={props.name}
+                  key={name}
                   className="w-full grow"
-                  style={{width: props.width}}>
-                  <Input 
+                  style={{width: width ?? ''}}>
+                  <FormInput 
                     {...props}
-                    value={formInput[props.name]}
-                    onChange={onChange}
+                    name={name}
+                    value={formInput[name]}
+                    onChange={handleChange}
                     className="input-simple"
                   />
                 </div>
@@ -214,12 +153,12 @@ function SetupIdentity() {
                   name="use_app_for"
                   defaultLabel="Select an option"
                   value={formInput['use_app_for']}
-                  onChange={onChange}
-                  options={[...new Set(
-                    useAppForAnswer.map((item, idx) => (
-                      {key: idx, value: item, label: item}
+                  onChange={handleChange}
+                  options={useAppForAnswer.map(
+                    (item) => (
+                      {value: item, label: item}
                     ))
-                  )]}
+                  }
                 />
               </div>
               <div className="w-full">
@@ -228,12 +167,12 @@ function SetupIdentity() {
                   name="source_of_funds"
                   defaultLabel="Select an option"
                   value={formInput['source_of_funds']}
-                  onChange={onChange}
-                  options={[...new Set(
-                    sourceOfFundsAnswer.map((item, idx) => (
-                      {key: idx, value: item, label: item}
+                  onChange={handleChange}
+                  options={sourceOfFundsAnswer.map(
+                    (item) => (
+                      {value: item, label: item}
                     ))
-                  )]}
+                  }
                 />
               </div>
               <div className="w-full">
@@ -242,12 +181,12 @@ function SetupIdentity() {
                   name="employment_status"
                   defaultLabel="Select an option"
                   value={formInput['employment_status']}
-                  onChange={onChange}
-                  options={[...new Set(
-                    employmentStatusAnswer.map((item, idx) => (
-                      {key: idx, value: item, label: item}
+                  onChange={handleChange}
+                  options={employmentStatusAnswer.map(
+                    (item) => (
+                      {value: item, label: item}
                     ))
-                  )]}
+                  }
                 />
               </div>
             </div>
@@ -257,55 +196,54 @@ function SetupIdentity() {
         <div className="flex mb-5">
           <span className="md:w-full"></span>
           <Button 
-            text="Continue" 
             type="submit" 
-            isLoading={isLoading} 
-            disabled={!canSubmit}
-          />
+            isLoading={isSubmiting} 
+            disabled={!isSubmitReady}
+          >Continue</Button>
         </div>
       </Form>
       <div className="text-center py-4 font-medium">
-        <a href="#" className="link">Sign out</a>
+        <SignoutButton />
       </div>
     </main>
 	)
 }
 
+
+interface PropsSelect extends 
+React.SelectHTMLAttributes<HTMLSelectElement> {
+  options: Array<{value: string, label: string}>
+  defaultLabel: string
+}
+
 const Select = ({
   name,
-  defaultLabel,
   options,
+  defaultLabel,
   ...rest
-}) => (
+}: PropsSelect) => (
   <select 
     name={name} 
     className={"input-simple" + 
       `${rest.value ? '' : ' text-gray-400'}`
     }
     style={{paddingLeft: '1rem'}}
-    defaultValue=""
-    aria-expanded
     {...rest}
   >
     <option className="text-gray-300"
       value="">{defaultLabel}</option>
-    {options.map(({key, value, label}) => (
+    {options.map(({value, label}, idx) => (
       <option className="text-black" 
-        key={key} value={value}>
+        key={idx} value={value}>
         {label}
       </option>
     ))}
   </select>
 )
 
-const Label = ({label}) => (
+
+const Label = ({label}: {label:string}) => (
   <p className="font-medium text-sm pb-1 text-gray-600">
     {label}
   </p>
 )
-
-export default { 
-  loader, 
-  action, 
-  element: <SetupIdentity /> 
-}

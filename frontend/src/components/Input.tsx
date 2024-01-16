@@ -1,15 +1,14 @@
-import * as React from 'react'
-import { 
-  isValidEmail, 
-  isValidPassword 
-} from 'lib/validation'
+import React from 'react'
+import { isValidEmail, isValidPassword } from '@/lib/validation'
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+
+interface InputProps extends 
+React.InputHTMLAttributes<HTMLInputElement> {
   caption?: string
   error?: string
   novalidate?: boolean
 }
+
 
 const Input: React.FC<InputProps> = ({
   caption, 
@@ -18,19 +17,23 @@ const Input: React.FC<InputProps> = ({
   className,
   novalidate,
   ...rest
-}) => {
+}) => 
+{
   const [errState, setErrState] = React.useState('')
   const [state, setState] = React.useState('')
 
-  const validateInput = (event?) => {
+  const validateInput = (
+    event?: React.FocusEvent<HTMLInputElement, Element>
+  ): void => 
+  {
     const args = event?.target ?? rest
-    const val = state ? state : value
+    const val = state ? state : value?.toString() ?? ''
 
     if (args.required && !val) 
       setErrState(`${caption ?? 'This field'} is required*`)
 
-    else if (args.name.search('password') >= 0) {
-      if (val.length < 5) 
+    else if (args.name && args.name.search('password') >= 0) {
+      if (val?.length < 5) 
         setErrState('Too weak')
 
       else if (!isValidPassword(val))
@@ -39,11 +42,11 @@ const Input: React.FC<InputProps> = ({
       else 
         setErrState('')
     } 
-    else if (args.name.search('email') >= 0 && !isValidEmail(val))
+    else if (args.name && args.name.search('email') >= 0 && !isValidEmail(val))
       setErrState('Use a valid email address')
 
     else
-      setErrState(error)
+      setErrState(error ?? '')
   }
 
   React.useEffect(() => {
@@ -81,4 +84,5 @@ const Input: React.FC<InputProps> = ({
   )
 }
 
-export default Input;
+
+export default Input

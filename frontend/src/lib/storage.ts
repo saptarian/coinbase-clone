@@ -1,28 +1,13 @@
-interface AuthItem {
-  token: string
-}
-
-interface UserItem {
-  user: unknown
-  address: unknown
-  identity: unknown
-  analytic: unknown
-  preference: unknown
-}
-
-interface CoinData {
-  stats: unknown
-  coins: unknown
-  updatedAt: unknown
-}
+import type { UserData, AuthItem } from '@/types'
 
 // ======================== AUTH ======================== //
 
 export function getAuth(): AuthItem | null {
-  return JSON.parse(localStorage.getItem('auth'))
+  const authItem = localStorage.getItem('auth')
+  return authItem ? JSON.parse(authItem) : null
 }
 
-export function updateAuth(newAuth?: AuthItem | null): void {
+export function storeAuth(newAuth?: AuthItem | null): void {
   if (!newAuth)
     setAuth(null)
 
@@ -51,52 +36,41 @@ function setAuth(value: AuthItem | null) {
 // ======================== USER ======================== //
 
 
-export function getUser(): UserItem | null {
-  return JSON.parse(sessionStorage.getItem('user'))
+export function getUser(): UserData | null {
+  const userData = sessionStorage.getItem('user')
+  return userData ? JSON.parse(userData) : null
 }
 
-export function updateUser(newUser?: UserItem | null): void {
+type PartUserData = Partial<UserData>
+
+export function storeUser(
+  newUser: ((user: PartUserData | null) => 
+  PartUserData) | PartUserData | null = null
+): void 
+{
+  const user = getUser()
+
   if (!newUser)
     setUser(null)
 
-  else {
-    const user = getUser() ?? {}
+  else if (typeof newUser === 'function') 
+    setUser(newUser(user))
+
+  else 
     setUser({...user, ...newUser })
-  }
 }
 
-export function getUserProfile(): unknown | null {
-  const user = getUser()
-  return user?.profile ?? null
-}
+// export function storeUserProfile(): unknown | null {
+//   const user = getUser()
+//   return user?.profile ?? null
+// }
   
-export function setUserProfile(profile: unknown): void {
-  const user = getUser() ?? {}
-  const newUser = { profile }
-  setUser({...user, ...newUser })
-}
+// export function setUserProfile(profile: unknown): void {
+//   const user = getUser() ?? {}
+//   const newUser = { profile }
+//   setUser({...user, ...newUser })
+// }
 
-function setUser(value: UserItem | null) {
+function setUser(value: PartUserData | null) {
   sessionStorage.setItem('user', JSON.stringify(value))
-}
-
-
-// ======================== COINS ======================== //
-
-export function getCoins(): CoinData | null {
-  return JSON.parse(sessionStorage.getItem('coins'))
-}
-
-export function updateCoins(data?: CoinData | null): void {
-  if (!data)
-    setCoins(null)
-
-  else {
-    const coins = getCoins() ?? {}
-    setCoins({...coins, ...data })
-  }
-}
-
-function setCoins(data: CoinData | null) {
-  sessionStorage.setItem('coins', JSON.stringify(data))
 }

@@ -1,5 +1,3 @@
-import { currencyFormater } from 'root/lib/helper'
-
 export const languageAvailable = [
   { name: "en", label: "English" },
 ]
@@ -32,58 +30,132 @@ export const signupForm = [
 ]
 
 
+export const signupFormWithPattern = [
+  { 
+    id: 'first_name',
+    name: "first_name" as const,
+    label: "Legal first name",
+    type: "text", 
+    placeholder: "Legal first name",
+    pattern: '^[A-Za-z0-9]{3,16}$',
+    invalidMessage: 'Use a valid legal first name',
+    width: "12rem",
+    required: true,
+  },
+  { 
+    id: 'last_name',
+    name: "last_name" as const,
+    label: "Legal last name",
+    type: "text", 
+    placeholder: "Legal last name",
+    // pattern: '^[A-Za-z0-9]{1,16}$',
+    invalidMessage: 'Use a valid legal last name',
+    width: "12rem",
+    required: true,
+  },
+  { 
+    id: 'email',
+    name: "email" as const,
+    label: "Email",
+    type: "email", 
+    placeholder: "Email",
+    // pattern: '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+    invalidMessage: 'Use a valid email address',
+    width: "24rem",
+    required: true,
+  },
+  { 
+    id: 'password',
+    name: "password" as const,
+    label: "Password",
+    type: "password", 
+    placeholder: "Enter password",
+    pattern: '^(?=.*\\W)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,20}$',
+    // invalidMessage: 'Wrong input',
+    width: "24rem",
+    required: true,
+  },
+]
+
+
 /* ::::: SETUP IDENTITY PAGE ::::: */
 
 export const identityForm = [
   { 
-    name: "first_name", 
+    name: "first_name" as const, 
     caption: "Legal first name",
     type: "text", 
   },
   { 
-    name: "last_name", 
+    name: "last_name" as const, 
     caption: "Legal last name",
     type: "text", 
   },
 ]
 
-export const dateOfBirthForm = [
+export const YEAR_MAX = 2011
+export const YEAR_MIN = 1924
+
+export type FormValuesWithValidation = Readonly<{
+  id?: string
+  name: string
+  type: string 
+  caption?: string
+  placeholder?: string
+  label?: string
+  min?: number
+  max?: number
+  width?: string
+  pattern?: string
+  required?: boolean
+  invalidMessage?: string
+}>
+
+export const dateOfBirthForm = 
+[
   { 
-    name: "day", 
+    name: "day" as const, 
     type: "number", 
     placeholder: "Day",
+    min: 1,
+    max: 31,
     required: true,
   },
   { 
-    name: "year", 
+    name: "year" as const, 
     type: "number", 
+    min: YEAR_MIN,
+    max: YEAR_MAX,
     placeholder: "Year",
     required: true,
   },
 ]
 
+export const postalCodePattern = "^[0-9]{4,7}$"
+
 export const addressForm = [
   { 
-    name: "street", 
+    name: "street" as const,
     type: "text", 
     placeholder: "Address line 1",
     required: true,
   },
   { 
-    name: "city", 
+    name: "city" as const,
     type: "text", 
     placeholder: "City",
     required: true,
   },
   { 
-    name: "postal_code", 
-    type: "number", 
+    name: "postal_code" as const,
+    type: "text", 
+    pattern: postalCodePattern,
     placeholder: "Postal code",
     width: "12rem",
     required: true,
   },
   { 
-    name: "country", 
+    name: "country" as const,
     type: "text", 
     placeholder: "Country",
     width: "12rem",
@@ -133,16 +205,29 @@ export const navLinks = [
   { label: "Company", href: "/company" },
 ]
 
-
 /* ::::: DASHBOARD ::::: */
 
+import { 
+  Home, 
+  Globe, 
+  ChartMixed, 
+  BadgeCheck,
+  ChartLineUp, 
+} from './components/Icons'
+import { IconProps } from './components/Icons/Icons'
+
+export type MenuIconedItem = {
+  label: string
+  path: string
+  icon: React.FC<IconProps>
+}
+
 export const sidebarLinks = [
-  { label: "Home", path: "/home" },
-  { label: "My assets", path: "/assets" },
-  { label: "Trade", path: "/trade" },
-  { label: "Earn", path: "/earn" },
-  { label: "Profile", path: "/profile" },
-  { label: "Learning rewards", path: "/rewards" },
+  { label: "Home", path: "/home", icon: Home },
+  { label: "My assets", path: "/assets", icon: Globe },
+  { label: "Trade", path: "/trade", icon: ChartLineUp },
+  { label: "Earn", path: "/earn", icon: ChartMixed },
+  { label: "Learning rewards", path: "/rewards", icon: BadgeCheck },
 ]
 
 export const footerLinks = [
@@ -152,10 +237,10 @@ export const footerLinks = [
 ]
 
 export const mobileMenuLinks = [
-  { label: "Home", path: "/home" },
-  { label: "Assets", path: "/assets" },
-  { label: "Trade", path: "/trade" },
-  { label: "Earn", path: "/earn" },
+  { label: "Home", path: "/home", icon: Home },
+  { label: "Assets", path: "/assets", icon: Globe },
+  { label: "Trade", path: "/trade", icon: ChartLineUp },
+  { label: "Earn", path: "/earn", icon: ChartMixed },
 ]
 
 export const newAssets = [
@@ -240,7 +325,7 @@ export const assets = [
   {
     name: "Bitcoin",
     alias: "BTC",
-    price: currencyFormater("24410.72"),
+    price: "24410.72",
     change: "+1.58%",
     views: "",
     performance: {
@@ -258,19 +343,19 @@ export const assets = [
     stats: [
       { 
         title: "Market cap",
-        sub: currencyFormater("476000000000.0"),
+        sub: "476000000000.0",
         spanTitle: "",
         spanSub: "",
       },
       { 
         title: "Volume (24h)",
-        sub: currencyFormater("11800000000.0"),
+        sub: "11800000000.0",
         spanTitle: "+6.48%",
         spanSub: "",
       },
       { 
         title: "Circulating supply",
-        sub: currencyFormater("19500000.0"),
+        sub: "19500000.0",
         spanTitle: "93% of total supply",
         spanSub: "",
       },

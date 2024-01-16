@@ -1,4 +1,5 @@
-import logo from '$/assets/logo-coinbase.svg'
+import logo from '@/assets/logo-coinbase.svg'
+
 
 function Nav() {
 	return (

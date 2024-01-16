@@ -1,91 +1,35 @@
-import * as React from 'react'
-import type { 
-  LoaderFunctionArgs 
-} from "react-router-dom";
-import { 
-  Form,
-  redirect,
-  useNavigation,
-  useActionData,
-} from 'react-router-dom'
-import { Button, Input } from '$/components'
-import { createPhone, validatePhone } from 'lib/auth'
+import React from 'react'
+import { Form, useNavigation } from 'react-router-dom'
 
-interface FormInput {
+import Button from '@/components/Button'
+import FormInput from '@/components/FormInput'
+import SignoutButton from '@/components/SignoutButton'
+import { isEveryInputOK } from '@/lib/validation'
+
+
+const patterns = {
+  prefix: "^[0-9]{1,4}$",
+  number: "^[0-9]{4,12}$"
+}
+
+type FormValues = {
   prefix: string
   number: string
 }
 
-const loader = async () => {
-  try {
-    const phone = await validatePhone()
-    if (phone.status == 202) 
-      return { ok: true }
-  }
-  catch (error) {
-    return { error, ok: false }
-  }
-  return redirect("/setup/identity")
-}
+export function SetupPhone() {
+  const [formInput, setFormInput] = React.useState<FormValues>({
+    prefix: '',
+    number: '',
+  })
 
-const action = async ({ request }: LoaderFunctionArgs) => {
-  const formData = await request.formData()
-  const prefix = formData.get("prefix") as string | null
-  const number = formData.get("number") as string | null
-
-  // TODO: Doing some validation check before hit the server
-
-  const phone_number = `${prefix}${number}`
-
-  try {
-    await createPhone({phone_number})
-  }
-  catch (error) {
-    return { error, ok: false }
-  }
-
-  return redirect("/setup/identity")
-}
-
-
-function validateInput (formInput: FormInput): boolean {
-  if (Object.entries(formInput).length != 2)
-    return false
-
-  else if (Object.values(formInput).some(val => val === ''))
-    return false
-
-  // TODO: more validate, isnumber, value length
-
-  return true
-}
-
-function SetupPhone() {
-  const [canSubmit, setCanSubmit] = React.useState<boolean>(false)
-  const [formInput, setFormInput] = React.useState<FormInput>({})
-  const [inputError, setInputError] = React.useState<FormInput>({})
-
-  const actionData = useActionData()
   const navigation = useNavigation()
-  const isLoading = navigation.formData != null  
+  const isSubmiting = navigation.formData != null  
+  const canSubmit = isEveryInputOK<FormValues>(formInput, {
+    prefix: (val) => new RegExp(patterns.prefix).test(val),
+    number: (val) => new RegExp(patterns.number).test(val),
+  })
 
-  function onChange ({target}) { 
-    setFormInput({
-      ...formInput,
-      [target.name]: target.value
-    })
-
-    if (inputError[target.name])
-      setInputError({...inputError ,[target.name]: ''})
-  }
-
-  React.useEffect(() => {
-    setInputError(actionData?.error ?? {})
-  }, [actionData])
-
-  React.useEffect(() => {
-    setCanSubmit(validateInput(formInput))
-  }, [formInput])
 
 	return (
 		<main className="py-6 px-4">
@@ -103,44 +47,48 @@ function SetupPhone() {
         </p>
         <div className="mb-5 flex gap-2">
           <div className="w-[100px] flex-none relative">
-            <Input
+            <FormInput
               name="prefix"
               type="tel"
-              placeholder="62"
+              placeholder="1"
+              pattern={patterns['prefix']}
               value={formInput['prefix']}
-              error={inputError['prefix']}
-              onChange={onChange}
+              onChange={({target}) => {
+                 setFormInput({
+                  ...formInput,
+                  [target.name]: target.value
+                })
+              }}
               required
             />
           </div>
           <div className="w-full">
-            <Input
+            <FormInput
               name="number"
               type="tel"
               placeholder="000 000-0000"
+              pattern={patterns['number']}
               value={formInput['number']}
-              error={inputError['number']}
-              onChange={onChange}
+              invalidMessage="Use a valid phone number"
+              onChange={({target}) => {
+                 setFormInput({
+                  ...formInput,
+                  [target.name]: target.value
+                })
+              }}
               required
             />
           </div>
         </div>
         <Button 
-          text="Continue" 
           type="submit" 
-          isLoading={isLoading} 
+          isLoading={isSubmiting} 
           disabled={!canSubmit}
-        />
+        >Continue</Button>
       </Form>
       <div className="text-center py-4 font-medium">
-        <a href="#" className="link">Sign out</a>
+        <SignoutButton />
       </div>
     </main>
 	)
-}
-
-export default { 
-  loader, 
-  action, 
-  element: <SetupPhone /> 
 }

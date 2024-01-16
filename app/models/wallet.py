@@ -1,28 +1,27 @@
-import datetime
-
 from app.extensions import db
+from sqlalchemy.orm import relationship 
+from .base import Base
 
 
-class Wallet(db.Model):
-    __tablename__ = "wallet"
+class Wallet(db.Model, Base):
+    __tablename__ = "wallets"
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    crypto_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    inactive = db.Column(db.Boolean, default=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'))
     balance = db.Column(db.Numeric(precision=18, scale=8), default=0, nullable=False)
-    created_at = db.Column(db.DateTime, nullable=False)
+    asset = relationship("Asset")
+    user = relationship("User")
 
-    def __init__(self, user_id, crypto_id, balance):
+    def __init__(self, user_id, asset_id, balance = 0):
         self.user_id = user_id
-        self.crypto_id = crypto_id
         self.balance = balance
-        self.created_at = datetime.datetime.utcnow()
+        self.asset_id = asset_id
 
     def to_dict(self):
         # Convert wallet object to a dictionary for JSON response
         return {
-            'id': self.id,
-            'crypto_id': self.crypto_id,
-            'balance': float(self.balance),
-            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            'asset_id': self.asset_id,
+            'inactive': self.inactive,
+            'balance': float(self.balance)
         }

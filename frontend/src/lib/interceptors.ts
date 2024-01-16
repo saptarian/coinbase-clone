@@ -1,10 +1,7 @@
-import {
-  type AxiosError,
-  type AxiosResponse,
-  type InternalAxiosRequestConfig,
-} from 'axios'
-import { getToken } from 'lib/storage'
-import { type ModAxiosResponse } from '$/types'
+import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import type { ModAxiosResponse, BasicResponseJSON } from '@/types'
+import { getToken } from '@/lib/storage'
+import axios from 'axios'
 
 
 export const requestInterceptor = (
@@ -19,18 +16,50 @@ export const requestInterceptor = (
   return config
 }
 
-export const successInterceptor = (response: AxiosResponse): ModAxiosResponse => {
+export const successInterceptor = (
+  response: AxiosResponse<BasicResponseJSON>
+): ModAxiosResponse => 
+{
   return {
-    status: response.status,
+    ...response,
     message: response.data?.message ?? response.data?.msg ?? '',
-    data: response.data,
   }
 }
 
-export const errorInterceptor = async (error: AxiosError): Promise<void> => {
+export const errorInterceptor = async (
+  error: AxiosError<BasicResponseJSON>
+): Promise<void> => 
+{
   await Promise.reject({
     status: error.response?.status ?? 414,
     message: error.response?.data.message ?? error.response?.data.msg ?? error.message,
     data: error.response ?? error,
   })
+}
+
+
+interface IErrorBase<T> {
+  error: Error | AxiosError<T>
+  type: 'axios-error' | 'stock-error'
+}
+
+interface IAxiosError<T> extends IErrorBase<T>  {
+  error: AxiosError<T>
+  type: 'axios-error'
+}
+
+interface IStockError<T> extends IErrorBase<T> {
+  error: Error
+  type: 'stock-error'
+}
+
+export function axiosErrorHandler<T>(
+  callback: (err: IAxiosError<T> | IStockError<T>) => void
+) {
+  return (error: Error | AxiosError<T>) => {
+    if (axios.isAxiosError(error))
+      callback({ error, type: 'axios-error' })
+    else
+      callback({ error, type: 'stock-error' })
+  }
 }
