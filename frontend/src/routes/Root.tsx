@@ -7,6 +7,7 @@ import { signin, isLoggedIn, validateIdentity, signup } from '@/lib/server'
 import { isValidEmail } from '@/lib/validation'
 import { queryClient } from '@/lib/queries'
 import { SignupValues } from '@/types'
+import {NotFound} from '@/pages/NotFound'
 
 
 export const RootRoutes = [
@@ -24,10 +25,7 @@ export const RootRoutes = [
         path: "*", 
         loader: loaderNotFound,
         action: actionNotFound,
-        async lazy() {
-          const { NotFound } = await import('../pages/NotFound')
-          return { element: <NotFound/> }
-        },
+        element: <NotFound/>
       },
     ]
   },

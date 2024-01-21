@@ -21,6 +21,9 @@ class PhoneNumber(db.Model, Base):
         text = self.number
         return f'+xx xxx xxxx xx{text[-2:]}'
 
+    def __repr__(self):
+        return "<number '{}'>".format(self.number)
+
     def to_dict(self, reveal: bool = False):
         number = self.unreveal()
         if reveal:

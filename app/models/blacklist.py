@@ -18,7 +18,7 @@ class BlacklistToken(db.Model):
         self.blacklisted_on = datetime.datetime.utcnow()
 
     def __repr__(self):
-        return '<jti: jti: {}'.format(self.jti)
+        return "<jti '{}'>".format(self.jti)
 
     @staticmethod
     def check_blacklist(jti: str) -> bool:

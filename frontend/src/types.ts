@@ -339,6 +339,15 @@ export type GlobalStatistic = {
   [s: string]: unknown 
 }
 
+
+export type SortableHeader = {
+  id: string
+  label: string
+  width?: string
+  sortable?: SortByOption
+  handleSort?: (x: SortByOption) => void
+}
+
 // export type BuySellProps = {
 //   Form
 //   isSubmiting: boolean

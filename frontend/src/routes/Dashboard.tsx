@@ -171,9 +171,8 @@ export const DashboardRoutes = {
       path: 'signout', 
       action: async () => {
         await signout()
-          .catch(e => {
-            toast(e.message)
-            return { ok: false }
+          .catch(err => {
+            toast(err.message)
           })
 
         toast("Logged out")

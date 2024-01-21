@@ -1,7 +1,8 @@
+import React from 'react'
 import { WalletBalanceInfo } from './WalletBalanceInfo'
 import { FormOrderType, WalletOrNotFound } from '@/types'
 import { FormOrderContext } from './BuySellPanel'
-import { formatCurrency } from '@/lib/helper'
+import { formatCurrency, formatDecimal } from '@/lib/helper'
 import { ArrowLeft } from '@/components/Icons'
 import Button from '@/components/Button'
 
@@ -11,12 +12,30 @@ export const OrderPreview = ({ context, onCancel }: {
   onCancel: (orderType: string) => void
 }) =>
 {
-  const {
-    Form, asset, order, wallet, assetPrice, isSubmiting
-  } = context
+  const {Form, asset,
+    order, wallet, assetPrice, isSubmiting} = context
+
+  if (!wallet || !asset || !order)
+    return (
+      <div className="text-center px-5 py-5 space-y-3">
+        <h3 className="font-medium text-md pb-5 text-gray-600">
+          Create order failed
+        </h3>
+        <p className="text-gray-700 leading-5 py-5 border
+          font-medium rounded-md text-sm px-5">
+          Something missing when create preview order
+          <a href="#" className="link"> Get help</a>
+        </p>
+        <button
+          onClick={() => onCancel('buy')}
+          className="primary-btn-sm block w-full">
+          Cancel
+        </button>
+      </div>
+    )
+
   const previewList = previewMap(wallet, asset, order)
   // console.log('OrderPreview.render', order)
-  
   
   return (
     <Form method="post" action="/complete" className="px-5 py-3">
@@ -32,20 +51,20 @@ export const OrderPreview = ({ context, onCancel }: {
           Order preview
         </h2>
       </div>
-      <h3 data-suffix={` ${asset?.asset_symbol}`}
+      <h3 data-suffix={` ${asset.asset_symbol}`}
         className="mt-4 mb-12 text-center font-medium text-3xl
         text-blue-600 truncate
         after:content-[attr(data-suffix)] ">
-        {order?.amount}
+        {order.amount ? formatDecimal(order.amount, 7) : 0}
       </h3>
       {previewList.map((item, idx) => 
         <PreviewItem key={idx} {...item}/>
       )}
-      <input type="hidden" name="uuid" value={order?.uuid} />
+      <input type="hidden" name="uuid" value={order.uuid} />
       <div className="py-2">
         <Button type="submit" 
           isLoading={isSubmiting}>
-          {order?.order_type === 'buy' ? 'Buy now' : 'Sell now'}
+          {order.order_type === 'buy' ? 'Buy now' : 'Sell now'}
         </Button>
       </div>
       <WalletBalanceInfo 
@@ -58,15 +77,11 @@ export const OrderPreview = ({ context, onCancel }: {
 
 
 const previewMap = (
-  wallet?: WalletOrNotFound, 
-  asset?: WalletOrNotFound, 
-  order?: FormOrderType) => 
+  wallet: WalletOrNotFound, 
+  asset: WalletOrNotFound, 
+  order: FormOrderType
+) => 
 {
-  if (wallet === undefined ||
-    asset === undefined ||
-    order === undefined
-  ) return []
-
   return [
     { 
       label: order.order_type === 'buy' ? 'Pay with' : 'Add to', 

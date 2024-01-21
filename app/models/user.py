@@ -37,7 +37,7 @@ class User(db.Model, Base):
         return bcrypt.check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return "<public_id '{}'>".format(self.public_id)
+        return "<email '{}'>".format(self.email)
 
     def to_dict(self):
         if not self.updated_at:

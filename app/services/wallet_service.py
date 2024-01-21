@@ -68,6 +68,9 @@ class WalletService(AssetService):
         return self.get_user_wallet_by_asset_id(user_id, asset.id), asset
 
 
+    def commit(self):
+        db.session.commit()
+
     def save_changes(self, data):
         db.session.add(data)
         db.session.commit()

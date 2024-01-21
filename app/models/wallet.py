@@ -9,7 +9,7 @@ class Wallet(db.Model, Base):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     inactive = db.Column(db.Boolean, default=False)
     asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'))
-    balance = db.Column(db.Numeric(precision=18, scale=8), default=0, nullable=False)
+    balance = db.Column(db.Numeric(precision=36, scale=22), default=0, nullable=False)
     asset = relationship("Asset")
     user = relationship("User")
 
@@ -18,10 +18,13 @@ class Wallet(db.Model, Base):
         self.balance = balance
         self.asset_id = asset_id
 
+    def __repr__(self):
+        return "<balance '{}'>".format(self.balance)
+
     def to_dict(self):
         # Convert wallet object to a dictionary for JSON response
         return {
             'asset_id': self.asset_id,
             'inactive': self.inactive,
-            'balance': float(self.balance)
+            'balance': float(self.balance) if float(self.balance) > 1e-6 else 0
         }

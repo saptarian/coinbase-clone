@@ -1,15 +1,7 @@
 import React from 'react'
 import { AngleRight } from '@/components/Icons'
-import { SortByOption } from '@/types'
+import { SortByOption, SortableHeader } from '@/types'
 
-
-export type SortableHeader = {
-	id: string
-	label: string
-	width?: string
-	sortable?: SortByOption
-	handleSort?: (x: SortByOption) => void
-}
 
 type Props = {
 	title?: string
@@ -61,11 +53,9 @@ function TableTemplate({
 									}
 								}}
 							>
-								<div className="flex gap-1.5 items-center">
-									<p className="truncate grow">
-										{header.label}
-									</p>
-									<span>
+								<p className="truncate grow">
+									{header.label}
+									<span className="inline-block pl-1.5">
 										{header.handleSort ? sort === header.id ? (
 											<AngleRight className="w-1.5 rotate-90
 			        						text-blue-500" />
@@ -74,7 +64,7 @@ function TableTemplate({
 										)
 											: ''}
 									</span>
-								</div>
+								</p>
 							</th>
 						))}
 					</tr>

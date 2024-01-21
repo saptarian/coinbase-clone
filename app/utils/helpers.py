@@ -1,4 +1,7 @@
 import re
+from datetime import datetime
+from uuid import uuid1
+
 
 def validate_email(email):
     # Regular expression for a valid email format
@@ -17,3 +20,12 @@ def is_numeric(value: str) -> bool:
         return True
     except Exception:
         return False
+
+
+def timestamp_utc():
+    return datetime.timestamp(datetime.utcnow())
+
+
+def generate_order_uuid(user_id):
+    rev = '%d%s' % (user_id, str(uuid1().time)[::-1])
+    return '%s-%s-%s' % (rev[:4], rev[4:12], rev[12:])

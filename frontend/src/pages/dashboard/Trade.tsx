@@ -2,11 +2,11 @@ import React from 'react'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
-import { useCoins, useDebounce, useIntersectionObserver } from '@/lib/hooks'
+import { useCoins, useIntersectionObserver, usePagination, useSearchInput, useSearchProcessing, useSortAssets } from '@/lib/hooks'
 import { PriceDisplay, DecimalDisplay, StyledNumericDisplay } from '@/components/Numeric'
-import { CoinQueryOptions, CryptoListView, SortByOption } from '@/types'
+import { CryptoListView, SortableHeader } from '@/types'
 import { DashboardContextType } from '@/lib/context'
-import TableTemplate, { SortableHeader } from '@/components/TableTemplate' 
+import TableTemplate from '@/components/TableTemplate' 
 import TransactionList from './components/TransactionList'
 import BuySellPanel from './components/BuySellPanel'
 import NewCoinList from './components/NewCoinList'
@@ -56,28 +56,35 @@ export function Trade() {
 }
 
 
-const MainContentMemo = 
-React.memo<{
+const MainContentMemo = React.memo<{
   onClickBuy: (s: string) => void
 }>(function MainContent({onClickBuy})
 {
-  const [search, setSearch] = React.useState('')
-  const [isSearching, startTransition] = React.useTransition()
-  const handleSearch = React.useCallback((keyword: string) => {
-    startTransition(() => {
-      setSearch(keyword)
-    })
-  }, [])
-
+  const {isSearching, onSetSearch, search} = useSearchProcessing()
+  const [range, setRange] = React.useState(1)
   // console.log('MainContent.render', search)
-
 
   return (
     <div className="grow">
       <section className="md:container-section divide-y relative">
-        <SearchInput
-          onDoneTyping={handleSearch}
-        />
+        <div className="flex justify-between gap-3 px-5 py-5 item-center">
+          <SearchInput
+            onDoneTyping={onSetSearch}
+          />
+          <span className="my-auto">
+            <select name="range" id="range" 
+              className="bg-gray-200/75 py-3 pl-4 pr-8 
+              rounded-full font-medium text-sm border-0
+              hover:bg-gray-200 cursor-pointer"
+              onChange={(e) => {
+                setRange(parseInt(e.target.value))
+              }}
+            >
+              <option value="1"> 1D </option>
+              <option value="5"> 5D </option>
+            </select>
+          </span>
+        </div>
         {isSearching ? (
           <div className="py-2 absolute top-[100px] left-[70px] 
             z-20 border-none">
@@ -88,6 +95,7 @@ React.memo<{
         ) : ''}
         {/*Searching: {search.length > 2 ? search : ''}*/}
         <TableMemo 
+          range={range}
           search={search.length > 2 ? search : ''}
           onClickBuy={onClickBuy}
         />
@@ -138,41 +146,23 @@ React.memo(function addtionalContent({isUserVerified}: {
 
 const SearchInput = ({onDoneTyping}: {
   onDoneTyping: (s: string) => void
-}) => {
-  const [
-    keyword, 
-    setKeyword
-  ] = React.useState<string | null>(null)
-  const search = useDebounce<string>(keyword ?? '')
-  const searchRef = React.useRef<HTMLInputElement>(null)
-
-  React.useEffect(() => {
-    if (searchRef.current)
-      searchRef.current.focus()
-  }, [])
-
-  // console.log('SearchInput.render', keyword, search)
-
-  React.useEffect(() => {
-    if (keyword === search) onDoneTyping(search)
-  }, [keyword, search])
-
+}) => 
+{
+  const {inputRef, onChange, value} = useSearchInput(onDoneTyping)
 
   return (
-    <div className="flex gap-3 px-5 py-5 justify-between">
-      <div className="relative w-full md:w-96">
-        <span className="absolute px-5 z-10 top-5">
-          <SearchLoop />
-        </span>
-        <input 
-          ref={searchRef}
-          type="search"
-          value={keyword ?? ''}
-          placeholder='Search all assets'
-          onChange={(e) => setKeyword(e.target.value)}
-          className={`rounded-full border pl-12 pr-6 h-14 w-full`}
-        />
-      </div>
+    <div className="relative w-full md:w-96">
+      <span className="absolute px-5 z-10 top-5">
+        <SearchLoop />
+      </span>
+      <input 
+        ref={inputRef}
+        type="search"
+        value={value}
+        placeholder='Search all assets'
+        onChange={onChange}
+        className={`rounded-full border pl-12 pr-6 h-14 w-full`}
+      />
     </div>
   )
 }
@@ -180,63 +170,49 @@ const SearchInput = ({onDoneTyping}: {
 
 const tableCoinHeaders: Array<SortableHeader> = [
   { id: 'name', label: 'Name', width: '40%' },
-  { id: 'price', label: 'Price', sortable: 'price', width: '5em' },
-  { id: 'change', label: 'Change', sortable: 'change', width: '3.5em' },
-  { id: 'market-cap', label: 'Market cap', sortable: 'market-cap', width: '4.5em' },
-  { id: 'buy', label: '', width: '4em' },
+  { id: 'price', label: 'Price', sortable: 'price', width: '6rem' },
+  { id: 'change', label: 'Change', sortable: 'change', width: '4.5rem' },
+  { id: 'market-cap', label: 'Market cap', sortable: 'market-cap', width: '6rem' },
+  { id: 'buy', label: '', width: '4.5rem' },
 ]
 
 
-const TableMemo = 
-React.memo(function Table({search, onClickBuy}: {
+const TableMemo = React.memo(function Table({
+  search, onClickBuy, range, tableLimitPerPage=25
+}: {
+  range: number
   search: string
+  tableLimitPerPage?: number
   onClickBuy: (s: string) => void
 })
 {
-  const {pref} = useOutletContext<DashboardContextType>()
-  const {currency} = pref
-  const [sortBy, setSortBy] = React.useState<SortByOption>(null)
-  const [limit, setLimit] = React.useState<number>(25)
-  const options = React.useMemo<CoinQueryOptions>(() => ({
-    limit, search, currency, sortBy
-  }), [limit, search, currency, sortBy])
-  const {coins, isLoading, count} = useCoins(options)
+  const {pref: {currency}} = useOutletContext<DashboardContextType>()
+  const {sortBy, isSorting,
+    headersWithHandleSort, } = useSortAssets(tableCoinHeaders)
+  const [totalCount, setTotalCount] = React.useState(tableLimitPerPage)
+  const {isPending, onMoreItems,
+    offset: {limit, index}, } = usePagination(tableLimitPerPage, totalCount)
+  const {coins, count,
+    isLoading, } = useCoins({limit, index, search, sortBy, currency })
+
+  React.useEffect(() => {
+    if (!isLoading) setTotalCount(count || tableLimitPerPage)
+  }, [count, isLoading, search])
+
   const [ref, entry] = useIntersectionObserver<HTMLTableRowElement>({
     threshold: 0.5, rootMargin: "10px"
   })
-  const [isSorting, startTransition] = React.useTransition()
-  const [isPending, startNextPage] = React.useTransition()
-
-  const coinsTotalCount = count ?? coins?.length
-  const isLimitReached = limit >= coinsTotalCount
-
-  const handleSort = (sortable: SortByOption) => {
-    startTransition(() => {
-      setSortBy(sortable)
-    })
-  }
-
-  const tableCoinHeadersWithHandleSort =
-    React.useMemo(() => tableCoinHeaders.map((header) => ({
-      ...header,
-      handleSort: header.sortable ? handleSort : undefined
-    })), [])
-
-  // console.log('Table.render', entry, limit)
 
   React.useEffect(() => {
-    if (entry?.isIntersecting && !isLimitReached) {
-      startNextPage(() => {
-        setLimit((limit) => limit+25)
-      })
-    }
-  }, [entry, isLimitReached])
+    if (entry?.isIntersecting) onMoreItems()
+  }, [entry])
 
 
   return (
     <TableTemplate
-      className="first:pl-5 last:pr-5 last:max-md:hidden"
-      headers={tableCoinHeadersWithHandleSort}>
+      className="first:pl-3 first:md:pl-5 last:pr-3 last:md:pr-5
+      last:max-md:hidden [&:nth-child(4)]:max-md:text-right"
+      headers={headersWithHandleSort}>
       {isSorting || !coins ?
         Array.from({length:7}).map((_,idx) => (
         <CoinListRow key={idx}
@@ -244,6 +220,7 @@ React.memo(function Table({search, onClickBuy}: {
         />
       )) : coins.map((coin) => (
         <CoinListRow key={coin.slug}
+          range={range}
           ref={ref}
           onClickBuy={onClickBuy}
           coin={coin}
@@ -265,9 +242,13 @@ const CoinListRow = React.forwardRef<HTMLTableRowElement, {
   isLoading?: boolean
   coin?: Partial<CryptoListView>
   onClickBuy?: (s: string) => void
-}>(({ isLoading, coin={}, onClickBuy }, ref ) => 
+  range?: number
+}>(({ isLoading, coin={}, onClickBuy, range}, ref ) => 
 {
   const navigate = useNavigate()
+  const changePercent = range === 1
+    ? coin.percent_change_24h 
+    : coin.percent_change_7d
 
   return (
     <SkeletonTheme enableAnimation={isLoading}>
@@ -278,7 +259,8 @@ const CoinListRow = React.forwardRef<HTMLTableRowElement, {
         className={`hover:bg-slate-100/50 cursor-pointer
           ${coin.slug ? "" : "pointer-events-none"}`}
       >
-        <td className="flex items-center gap-3 py-4 pl-5 mr-3">
+        <td className="flex items-center gap-3 py-4 
+          md:pl-5 pl-3 mr-3">
           <span className="w-8 flex-none" >
             {coin.logo ? (
               <img src={coin.logo} />
@@ -305,17 +287,17 @@ const CoinListRow = React.forwardRef<HTMLTableRowElement, {
         </td>
         <td className="pr-3">
           <p className="truncate">
-            {coin.percent_change_24h ? (
+            {changePercent ? (
               <StyledNumericDisplay
-                valueWithSign={coin.percent_change_24h} >
-                <DecimalDisplay value={coin.percent_change_24h} />
+                valueWithSign={changePercent} >
+                <DecimalDisplay value={changePercent} />
               </StyledNumericDisplay>
             ) : (
               <Skeleton />
             )}
           </p>
         </td>
-        <td className="pr-5 md:pr-3">
+        <td className="pr-3 max-md:text-right">
           <p className="truncate">{coin.market_cap ? (
               <PriceDisplay price={ coin.market_cap } />
             ) : (

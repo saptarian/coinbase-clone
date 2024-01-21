@@ -88,11 +88,12 @@ export async function signout() {
     Store.storeUser(null)
     return
   }
-
-  const response = 
-    await api.delete('/auth/signout').catch(error => error.message)
+  const err = await api.delete(
+    '/auth/signout'
+  ).catch(err => err)
   clearAuth()
-  return response
+  if (err) throw err
+  return
 }
 
 

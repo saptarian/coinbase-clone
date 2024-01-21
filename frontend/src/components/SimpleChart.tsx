@@ -14,7 +14,7 @@ const SimpleChart: React.FC<{
       height={height}
     >
       <SparklinesLine 
-        color={color ?? "blue"}
+        color={color ?? "#2563EB"}
         style={{ 
           strokeWidth: strokeWidth ?? 2, 
         }} 

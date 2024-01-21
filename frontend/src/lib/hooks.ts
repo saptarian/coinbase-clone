@@ -2,31 +2,32 @@ import React from 'react'
 import { useQuery, useQueries } from '@tanstack/react-query'
 import { useSubmit, useFetcher } from "react-router-dom"
 import { 
-  getLogo,
+  getLogoById,
   walletQuery,
   fiatMapQuery,
   coinListQuery, 
-  coinDetailQuery,
   sparkDataQuery,
   walletListQuery,
+  coinDetailQuery,
+  historicalDataQuery,
   coinListSearchQuery,
   transactionListQuery,
-  historicalDataQuery,
   coinGlobalStatisticQuery,
 } from '@/lib/queries'
 import { 
-  CoinQueryOptions, 
   CryptoList, 
-  CryptoWithNumeric, 
-  CryptoDetailed, 
-  TransactionType, 
-  WalletOrNotFound, 
-  WalletType, 
-  SparkData,
+  WalletType,
   HistoricalData,
   CryptoWithLogo,
   CryptoListView,
-  GlobalStatistic
+  CryptoDetailed, 
+  GlobalStatistic,
+  TransactionType, 
+  CoinQueryOptions, 
+  WalletOrNotFound, 
+  CryptoWithNumeric,
+  SortableHeader,
+  SortByOption, 
 } from '@/types'
 
 
@@ -141,38 +142,40 @@ export function useNewCoins(limit: number =5) {
   const {coins: data, isLoading} = 
     useCoins({limit, sortBy: 'date-added'})
 
-  if (!data || isLoading) return {isLoading, coins: data}
+  const coins = React.useMemo(() => {
+    if (!data) return data
 
-  const coins = React.useMemo(() => data.map((coin) => {
-    if (!coin.date_added) return coin
-
-    const now = new Date().getTime()
-    const ago = new Date(coin.date_added).getTime()
-    const diff = Math.round(
-      (now - ago) / A_DAY_IN_MILLISECONDS
-    )
-    const suffix = ['year', 'month', 'day']
-    const daysOf = [365, 30, 1]
-    const len = diff <= 0 ? 0 : suffix.length
-    let passedTime = "just now"
-
-    for (let i = 0; i < len; i++) {
-      const diffIn = Math.floor(diff / daysOf[i])
-
-      if (Math.max(diffIn, 0)) {
-        passedTime = `${
-          diffIn === 1 ? "a" 
-          : diffIn
-        } ${
-          diffIn === 1 ? suffix[i] 
-          : suffix[i] + "s"
-        } ago`;
-        break;
+    return data.map((coin) => {
+      if (!coin.date_added) return coin
+  
+      const now = new Date().getTime()
+      const ago = new Date(coin.date_added).getTime()
+      const diff = Math.round(
+        (now - ago) / A_DAY_IN_MILLISECONDS
+      )
+      const suffix = ['year', 'month', 'day']
+      const daysOf = [365, 30, 1]
+      const len = diff <= 0 ? 0 : suffix.length
+      let passedTime = "just now"
+  
+      for (let i = 0; i < len; i++) {
+        const diffIn = Math.floor(diff / daysOf[i])
+  
+        if (Math.max(diffIn, 0)) {
+          passedTime = `${
+            diffIn === 1 ? "a" 
+            : diffIn
+          } ${
+            diffIn === 1 ? suffix[i] 
+            : suffix[i] + "s"
+          } ago`;
+          break;
+        }
       }
-    }
-    return {...coin, passedTime}
-
-  }), [limit])
+      return {...coin, passedTime}
+  
+    })
+  }, [limit, isLoading])
 
   return {isLoading, coins}
 }
@@ -209,7 +212,7 @@ export function useSparkData(
   if (!data?.close) return [null, isLoading]
 
   let spark = []
-  const len = data.len ?? 0
+  const len = data.close.length ?? 0
 
   if (range >= 5 || range <= 0) 
     spark = data.close
@@ -242,7 +245,7 @@ function pleaseAddCoinInformation<T extends CryptoList>(
   return { 
     ...coin, 
     ...coin.quote[currency], 
-    logo: 'logo' in coin ? coin.logo as string : getLogo(coin.id)
+    logo: 'logo' in coin ? coin.logo as string : getLogoById(coin.id)
   }
 }
 
@@ -299,7 +302,12 @@ export const useFormOrder = () => {
   const { Form, data, formData } = useFetcher()
   const isSubmiting = formData != null
 
-  return { Form, isSubmiting, order: data?.order }
+  return { 
+    Form, 
+    isSubmiting, 
+    ok: data?.ok ?? false,
+    order: data?.order ?? {}, 
+  }
 }
 
 
@@ -354,6 +362,111 @@ export function useTransactionSparkData(): [number[], boolean]{
   // console.log('useTransactionSparkData.used-2', historicalData)
 
   return [historicalData, isLoading]
+}
+
+
+export const useSearchInput = (onDoneTyping: (s: string) => void) => 
+{
+  const [value, setValue] = React.useState<string>('') 
+  const keyword = useDebounce<string>(value)
+  const inputRef = React.useRef<HTMLInputElement>(null)
+
+  React.useEffect(() => {
+    if (inputRef.current) inputRef.current.focus()
+  }, [])
+
+  React.useEffect(() => {
+    if (value === keyword) {
+      onDoneTyping(keyword)
+    }
+  }, [value, keyword])
+
+  const onChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setValue(e.target.value)
+  }, [])
+
+  return {inputRef, value, onChange}
+}
+
+
+export const useSearchProcessing = () => 
+{
+  const [search, setSearch] = React.useState('')
+  const [isSearching, startTransition] = React.useTransition()
+  const onSetSearch = React.useCallback((keyword: string) => {
+    startTransition(() => {setSearch(keyword)})
+  }, [])
+
+  return {search, isSearching, onSetSearch}
+}
+
+
+export const useSortAssets = (headers: Array<SortableHeader>) => 
+{
+  const [sortBy, setSortBy] = React.useState<SortByOption>(null)
+  const [isSorting, startTransition] = React.useTransition()
+
+  const handleSort = (sortable: SortByOption) => {
+    startTransition(() => {
+      setSortBy(sortable)
+    })
+  }
+  const headersWithHandleSort =
+  React.useMemo(() => headers.map((header) => ({
+    ...header,
+    handleSort: header.sortable ? handleSort : undefined
+  })), [])
+
+  return {sortBy, isSorting, headersWithHandleSort}
+}
+
+
+export const usePagination = (
+  limitPerPage = 25, 
+  totalCount = 200
+) => 
+{
+  const [isPending, startTransition] = React.useTransition()
+  const [offset, setOffset] = React.useState({
+    limit: limitPerPage,
+    index: 0
+  })
+
+  const isLimitReached = offset.index + offset.limit >= totalCount
+  const onNextPage = React.useCallback(() => {
+    if (!isLimitReached)
+      startTransition(() => {
+        setOffset((curr) => ({
+          ...curr,
+          index: curr.index + limitPerPage
+        }))
+      })
+  }, [totalCount])
+
+  const onMoreItems = React.useCallback(() => {
+    if (!isLimitReached)
+      startTransition(() => {
+        setOffset((curr) => ({
+          ...curr,
+          limit: curr.limit + limitPerPage
+        }))
+      })
+    // console.log('onMoreItems.called', {isLimitReached, offset})
+  }, [totalCount])
+
+  const onPrevPage = React.useCallback(() => {
+    if (offset.index > 0)
+      startTransition(() => {
+        setOffset((curr) => ({
+          ...curr,
+          index: Math.max(curr.index - limitPerPage, 0)
+        }))
+      })
+  }, [])
+
+  // console.log('usePagination.used', {offset, isLimitReached})
+  return {offset, isPending, onNextPage, onPrevPage, onMoreItems}
 }
 
 

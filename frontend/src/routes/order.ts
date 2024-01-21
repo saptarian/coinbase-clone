@@ -45,15 +45,15 @@ export const updateOrder = async ({ request }: ActionFunctionArgs) => {
   .then((resp) => resp.data)
   .catch(e => {
     toast(e.message)
-    return { ok: false } 
+    return null
   })
+
+  if (!resp)
+    return { ok: false }
 
   // TODO: Invlidate query, remove wallets query
   queryClient.removeQueries({ queryKey: ['wallet', 'list'] })
   queryClient.invalidateQueries({ queryKey: ['wallet'] })
   queryClient.invalidateQueries({ queryKey: ['transaction'] })
-
-  return resp ?
-    {order: { ...resp, done: true }, ok: true}
-    : { ok: false }
+  return { order: { ...resp, done: true }, ok: true }
 }

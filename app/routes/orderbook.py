@@ -1,73 +1,204 @@
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 from app.decorators import user_id_required
 from app.services.order_service import OrderService
 
+from app import tasks
+from app.utils.helpers import generate_order_uuid, is_numeric
 
 orderbook_bp = Blueprint('orderbook', __name__)
-order_service = OrderService()
+svc = OrderService()
+
+
+def bad_start(msg: str):
+    return jsonify(message='Cannot create order: {}'.format(msg)), 400
+
+
+def bad_end(msg: str):
+    return jsonify(message='Cannot complete order: {}'.format(msg)), 400
 
 
 @orderbook_bp.route('/', methods=['POST'])
 @jwt_required()
 @user_id_required
 def create_order(user_id):
-    data = request.get_json()
+    kwargs = request.get_json()
+    asset_symbol = kwargs.get('asset_symbol')
+    wallet_symbol = kwargs.get('wallet_symbol')
+    order_type = kwargs.get('order_type')
+    total = kwargs.get('total')
 
     # Validate the input data
-    if 'asset_symbol' not in data \
-    or 'wallet_symbol' not in data \
-    or 'order_type' not in data \
-    or 'total' not in data \
-    or data['asset_symbol'] == data['wallet_symbol']:
-        return jsonify({'message': 'Missing required fields'}), 400
+    if not asset_symbol or not wallet_symbol \
+    or not order_type or not total \
+    or not is_numeric(total) or float(total) <= 0 \
+    or len(wallet_symbol.strip(' ')) < 2 \
+    or len(asset_symbol.strip(' ')) < 2: 
+        return bad_start('missing required fields')
 
-    # Ensure that user_id, crypto_id, and other fields are valid before creating an order
-    # Implement validation logic here
+    if asset_symbol == wallet_symbol:
+        return bad_start('wrong asset')
 
-    new_order = order_service.create_order(
-        user_id=user_id, 
-        asset_symbol=data['asset_symbol'], 
-        total=data['total'],
-        wallet_symbol=data['wallet_symbol'],
-        order_type=data['order_type']
-    )
-    if not new_order:
-        return jsonify({'message': 'Cannot create order'}), 400
+    use_wallet = svc.get_user_wallet_by_asset_symbol(user_id, wallet_symbol)
+    if not use_wallet:
+        return bad_start('unexpected wallet')
 
-    return new_order.to_dict()
+    amount: float = 0.0
+    price: float = svc.get_asset_price_by_symbol(asset_symbol)
+    if not price or price <= 0: 
+        return bad_start('unexpected asset price')
+
+    if order_type != 'buy' and order_type != 'sell':
+        return bad_start('something wrong')
+
+    elif order_type == 'buy':
+        if not use_wallet: 
+            return bad_start('unexpected wallet')
+
+        asset = svc.get_asset_by_symbol(symbol=asset_symbol)
+        if not asset: 
+            return bad_start('unexpected asset')
+
+        wallet, _ = use_wallet
+        
+        amount = float(total) / price
+        if wallet.balance < float(total):
+            return bad_start('not enough balance')
+
+    else: 
+        # check user asset balance
+        selling_asset = svc.get_user_wallet_by_asset_symbol(user_id, asset_symbol)
+        if not selling_asset:
+            return bad_start('unexpected selling asset')
+
+        asset_wallet, asset = selling_asset
+        wallet_balance_in_usd = float(asset_wallet.balance) * price
+        if wallet_balance_in_usd < float(total):
+            return bad_start('not enough asset')
+
+        wallet, _ = use_wallet
+        amount = float(total) / price
+
+
+    # store order in temp cache with expired time
+    new_order = {
+        'uuid': generate_order_uuid(user_id),
+        'asset_id': asset.id,
+        'order_type': order_type,
+        'amount': amount,
+        'price': price,
+        'status': 'pending',
+        'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    task = tasks.store_pending_order.apply_async(kwargs = {
+        'user_id': user_id, 
+        'wallet_id': wallet.id,
+        **new_order
+    })
+    try:
+        result = task.get(timeout=10)
+        return jsonify(new_order) if result \
+            else bad_start('store failed')
+
+    except Exception:
+        return bad_start('task failed')
 
 
 @orderbook_bp.route('/complete', methods=['POST'])
 @jwt_required()
 @user_id_required
 def complete_order(user_id):
-    data = request.get_json()
+    kwargs = request.get_json()
+    uuid = kwargs.get('uuid')
 
     # Validate the input data
-    if 'uuid' not in data:
-        return jsonify({'message': 'Missing order id'}), 400
+    if not uuid:
+        return bad_end('missing order id')
 
-    transaction_order = order_service.set_complete_order(
-        user_id=user_id, 
-        uuid=data['uuid']
+    task = tasks.get_pending_order.apply_async(args=(uuid,))
+    order = None
+    try:
+        order = task.get(timeout=10)
+    except Exception:
+        return bad_end('task failed')
+
+    if not order:
+        return bad_end('expired')
+
+    wallet_id = order.get('wallet_id')
+    asset_id = order.get('asset_id')
+    order_type = order.get('order_type')
+    amount = order.get('amount')
+    price = order.get('price')
+
+    if not wallet_id or not asset_id or not order_type \
+    or not amount or not price: return bad_end('missing values') 
+
+    if user_id != order.get('user_id') \
+    or uuid != order.get('uuid'):
+        return bad_end('unexpected order')
+
+    wallet = svc.get_wallet_by_id(wallet_id)
+    if not wallet:
+        return bad_end('unexpected wallet')
+
+    asset = svc.get_user_wallet_by_asset_id(user_id, asset_id)
+
+    if order_type != 'buy' and order_type != 'sell':
+        return bad_end('something wrong')
+
+    # create new wallet for this asset
+    elif order_type == 'buy' and not asset:
+        asset = svc.create_wallet(user_id, asset_id, balance=0)
+
+    elif order_type == 'sell' and not asset:
+        return bad_end('unexpected asset')
+
+    # complete the order 
+    new_order = svc.create_new_order(**{
+        **order, 'status': 'fulfilled'
+    })
+    if not new_order:
+        return bad_end('order conflict')
+
+    # new transaction
+    new_transaction = svc.create_transaction(
+        user_id= new_order.user_id, 
+        order_id= new_order.id, 
+        order_uuid= new_order.uuid, 
+        transaction_type= new_order.order_type
     )
-    if not transaction_order:
-        return jsonify({'message': 'Cannot complete order'}), 400
 
-    new_transaction, fulfilled_order = transaction_order
-    new_transaction = new_transaction.to_dict()
-    fulfilled_order = fulfilled_order.to_dict()
-    new_transaction.update(fulfilled_order)
-    # new_transaction.pop('uuid')
-    # fulfilled_order.pop('id')
-    return jsonify(new_transaction)
+    if not new_transaction:
+        return bad_end('transaction failed')
+
+    total_price: float = float(amount) * float(price)
+
+    if order_type == 'buy':
+        wallet.balance = float(wallet.balance) - total_price
+        asset.balance = float(asset.balance) + amount
+
+    else:
+        wallet.balance = float(wallet.balance) + total_price
+        asset.balance = float(asset.balance) - amount
+
+    svc.commit()
+
+    return jsonify({
+        **new_transaction.to_dict(),
+        **{
+            **new_order.to_dict(), 
+            'price': float(price), 
+            'amount': float(amount)
+        }
+    })
 
 
-@orderbook_bp.route('/<int:order_id>', methods=['GET'])
-@jwt_required()
-def get_order(order_id):
-    order = order_service.get_order_by_id(order_id)
-    if order:
-        return jsonify(order.to_dict())
-    return jsonify({'message': 'Order not found'}), 404
+# @orderbook_bp.route('/<int:order_id>', methods=['GET'])
+# @jwt_required()
+# def get_order(order_id):
+#     order = svc.get_order_by_id(order_id)
+#     if order:
+#         return jsonify(order.to_dict())
+#     return jsonify({'message': 'Order not found'}), 404

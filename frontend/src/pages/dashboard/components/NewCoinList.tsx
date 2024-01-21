@@ -3,8 +3,6 @@ import { Link, LinkProps } from 'react-router-dom'
 import { useNewCoins } from '@/lib/hooks'
 import { CryptoListViewWithPassTime } from '@/types'
 
-const A_DAY_IN_MILLISECONDS = (1000 * 3600 * 24)
-
 
 const NewCoinList: React.FC<{ 
 	limit?: number 

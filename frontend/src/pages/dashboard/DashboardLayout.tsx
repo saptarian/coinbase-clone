@@ -77,13 +77,13 @@ export function DashboardLayout()
 
   return (
     <DashboardContext.Provider value={context}>
-      <div className="flex flex-col-reverse md:flex-row divide-x">
+      <div className="flex flex-col-reverse md:flex-row 
+        divide-x">
         <Sidebar navItems={sidebarLinks} />
-        <MobileMenu showTradeButton={
-          isAssetViewPage(pathname)
-        }/>
+        <MobileMenu showTradeButton={isAssetViewPage(pathname)}/>
         <div className="md:bg-slate-100 min-h-screen md:grow 
           flex flex-col overflow-x-hidden">
+          {/*<ModalContent />*/}
           <Headbar 
             showGoBack={isAssetViewPage(pathname)}
             showSearch={pathname.indexOf('/trade') !== 0} 
@@ -99,6 +99,63 @@ export function DashboardLayout()
     </DashboardContext.Provider>
   )
 }
+
+// const TriggerButton = () => {
+//   const {setOpen} = React.useContext(ModalContext)
+
+//   return (
+//     <button className="primary-btn"
+//       onClick={() => {
+//         setOpen(true)
+//       }} > Open
+//     </button>
+//   )
+// }
+
+// const ModalContent = () => {
+//   const {setContent} = React.useContext(ModalContext)
+
+//   React.useEffect(() => {
+//     setContent(() => (
+//       <p className="text-white p-3
+//         font-medium text-xl bg-gray-700 ">
+//         Hello Modalalalal
+//       </p>
+//     ))
+//   }, [])
+// }
+
+// const ModalContext = React.createContext(null)
+
+// const ModalParent = ({
+//   children
+// }) => {
+//   const [open, setOpen] = React.useState(false)
+//   const [content, setContent] = React.useState(null)
+
+//   return (
+//     <ModalContext.Provider value={{content, setContent, open, setOpen}}>
+//       <div className={`${
+//         open ? "max-h-screen overflow-hidden" : 
+//         ''}`}
+//       >
+//         {children}
+//         {open ? (
+//           <div className="bg-black fixed z-40 inset-0
+//             opacity-70 flex items-center"
+//             onClick={() => setOpen(false)}
+//           >
+//             <div className="mx-auto w-fit"
+//               onClick={(e) => e.stopPropagation()}
+//             >
+//               {content ? content() : ''}
+//             </div>
+//           </div>
+//         ) : ''}
+//       </div>
+//     </ModalContext.Provider>
+//   )
+// }
 
 
 function isAssetViewPage(path: string) {

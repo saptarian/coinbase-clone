@@ -14,6 +14,8 @@ class Address(db.Model, Base):
     country = db.Column(db.String(10))
     user = relationship("User")
 
+    def __repr__(self):
+        return "<country '{}'>".format(self.country)
 
     def __init__(self, user_id, street, unit, city, postal_code, country):
         self.user_id = user_id

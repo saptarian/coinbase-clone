@@ -1,4 +1,5 @@
 import toast from 'react-hot-toast'
+import { redirect } from 'react-router-dom'
 import { formatDecimal, formatCurrency } from './helper'
 import { QueryClient, QueryCache } from '@tanstack/react-query'
 import { 
@@ -16,25 +17,25 @@ import {
 import { 
   CoinMap, 
   FiatMap, 
-  StatsList,
-  WalletType,
-  QuoteWithMeta,
-  WalletNotFound,
-  TransactionType,
-  WalletOrNotFound,
-  HistoricalData,
-  GlobalStatistic,
   MetaData,
   SparkData,
+  StatsList,
+  WalletType,
   CryptoList,
   FiatObject,
+  QuoteWithMeta,
+  HistoricalData,
+  WalletNotFound,
+  GlobalStatistic,
+  TransactionType,
+  WalletOrNotFound,
   FetchedCryptoList,
 } from '@/types'
 
 const A_MINUTE_IN_MS = 1000 * 60
+const A_HOUR_IN_MS = A_MINUTE_IN_MS * 60
+const A_DAY_IN_MS = A_HOUR_IN_MS * 24
 // const A_MINUTE_IN_SEC = 60
-// const TIME_1HOUR = 1000 * 60 * 60
-const A_DAY_IN_MS = 1000 * 60 * 60 * 24
 
 
 export const queryClient = new QueryClient({
@@ -54,8 +55,9 @@ export const queryClient = new QueryClient({
       queryClient.invalidateQueries(query.queryKey)
       await queryClient.cancelQueries({ queryKey: query.queryKey })
 
-      if (query.state.data !== undefined && error instanceof Error)
-        toast(error.message, {id: 'query'})
+      if (query.state.data !== undefined && 'message' in error) {
+        toast(error.message, {id: 'query'})      
+      }
     }
   })
 })
@@ -160,10 +162,7 @@ export const coinDetailQuery = (
 })
 
 
-export const historicalDataQuery = (
-  symbol: string,
-  years: number = 4
-) => 
+export const historicalDataQuery = (symbol: string, years: number = 4) =>
 ({
   queryKey: ['historical', symbol],
   queryFn: (): Promise<HistoricalData> => 
@@ -177,11 +176,20 @@ export const historicalDataQuery = (
 export const sparkDataQuery = (symbol: string) =>
 ({
   queryKey: ['spark', symbol],
-  queryFn: (): Promise<SparkData> => 
-    getSparkData(symbol).then(
-      (resp) => resp.data
-    ),
-  staleTime: A_DAY_IN_MS,
+  queryFn: async (): Promise<SparkData> => {
+    const data = await getSparkData(symbol).then((d) => d.data)
+    if (data && data.close && data.close.length) {
+      const dataSliced = []
+      const numSkipped = 36
+      for (let i =0; i < data.close.length; i+=numSkipped) {
+        dataSliced.push(data.close[i])
+      }
+      return {close: dataSliced, len: data.len}
+    }
+
+    return data
+  },
+  staleTime: 15 * A_MINUTE_IN_MS,
 })
 
 
@@ -276,7 +284,7 @@ export const walletQuery = (
       if (coin)
         walletNotFound = {
           balance: 0,
-          asset_logo: coin.id ? getLogo(coin.id) : logoPlaceholder,
+          asset_logo: coin.id ? getLogoById(coin.id) : logoPlaceholder,
           asset_name: coin.name,
           asset_symbol: coin.symbol,
         }
@@ -298,9 +306,9 @@ export const walletQuery = (
     walletDetail.cmc_asset_slug = assetFromCoinMap?.slug ?? coin?.slug
     walletDetail.asset_logo = 
       assetFromMap?.id 
-      ? getLogo(assetFromMap.id) 
+      ? getLogoById(assetFromMap.id) 
       : coin?.id 
-        ? getLogo(coin.id) 
+        ? getLogoById(coin.id) 
         : logoPlaceholder
 
     // if (walletFromList?.asset_is_fiat === false) {
@@ -538,7 +546,9 @@ function injectStats<T extends CryptoList>(
 }
 
 
-const logoPlaceholder = 'https://placehold.co/64x64/gold/FFF?text=$'
-const LOGO_BASE_URL = 'http://127.0.0.1:8081/cmc_logo'
+const logoPlaceholder = 
+  import.meta.env.LOGO_PLACEHOLDER ?? 'https://placehold.co/64x64/gold/FFF?text=$'
+const LOGO_BASE_URL = 
+  import.meta.env.LOGO_BASE_URL ?? 'http://127.0.0.1:8081/cmc_logo'
 
-export const getLogo = (id: number) => `${LOGO_BASE_URL}/${id}.png`
+export const getLogoById = (id: number) => `${LOGO_BASE_URL}/${id}.png`

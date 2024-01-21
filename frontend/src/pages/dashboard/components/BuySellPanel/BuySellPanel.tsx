@@ -1,11 +1,11 @@
 import React from 'react'
 
 import { useWallet, useFormOrder, useCoinPrice } from '@/lib/hooks'
+import { FetcherFormProps, useLocation } from 'react-router-dom'
 import { OrderPanel } from './OrderPanel'
 import { ThanksPanel } from './ThanksPanel'
 import { useDashboard } from '@/lib/context'
 import { OrderPreview } from './OrderPreview'
-import { FetcherFormProps } from 'react-router-dom'
 import { FormOrderType, WalletOrNotFound } from '@/types'
 
 const FAKE_VERIFIED = true
@@ -43,7 +43,7 @@ const BuySellPanel: React.FC<BuySellPanelProps> = ({
   onDone
 }) =>
 {
-  const {Form, isSubmiting, order} = useFormOrder()
+  const {Form, isSubmiting, order, ok} = useFormOrder()
   const [panelIndex, setPanelIndex] = React.useState(0)
   const [options, setOptions] = React.useState<OrderOptionsType>({
     asset: assetSlug,
@@ -60,10 +60,18 @@ const BuySellPanel: React.FC<BuySellPanelProps> = ({
 
   const isLoading = isWalletLooading || isAssetLoading
 
+  const location = useLocation()
+  // console.log(location)
+
   React.useEffect(() => {
-    if (order?.done) setPanelIndex(9)
-    else if (order?.uuid) setPanelIndex(5)
-  }, [order])
+    setPanelIndex(0)
+  }, [location.pathname.split('/').at(-1)])
+
+  React.useEffect(() => {
+    if (order.done) setPanelIndex(9)
+    else if (order.uuid) setPanelIndex(5)
+    else if (!ok) setPanelIndex(0)
+  }, [order.done, order.uuid, ok])
 
 
   React.useEffect(() => {

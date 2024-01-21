@@ -1,21 +1,23 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import { 
   useCoins, 
   useNewCoins, 
-  useDebounce, 
+  useSparkData,
+  usePagination,
+  useSearchInput,
   useGlobalStatistic, 
-  useSparkData 
+  useSearchProcessing,
 } from '@/lib/hooks'
 import SimpleChart from '@/components/SimpleChart'
-import { CryptoListView } from '@/types'
+import { CryptoListView, CryptoListViewWithPassTime, SortableHeader } from '@/types'
 import { 
   PriceDisplay,
   DecimalDisplay, 
   StyledNumericDisplay, 
 } from '@/components/Numeric'
-import TableTemplate, { SortableHeader } from '@/components/TableTemplate'
+import TableTemplate from '@/components/TableTemplate'
 import { SearchLoop } from '@/components/Icons'
 
 
@@ -34,7 +36,8 @@ export function Explore()
       <section className="flex flex-col gap-1 px-5 mb-1
         md:max-w-xl md:items-center mx-auto md:py-12">
         <h1 className="text-2xl font-medium md:text-4xl
-          md:font-normal"> Explore the cryptoeconomy
+          md:font-normal py-1"> 
+          Explore the cryptoeconomy
         </h1>
         {marketChange ? ( 
           <p className="text-slate-500">
@@ -82,25 +85,26 @@ export function Explore()
 
 
 const TableOptions = ({onSelCurrency, onSelRange}: {
-  onSelCurrency: (e) => void
-  onSelRange: (e) => void
+  onSelCurrency: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  onSelRange: (e: React.ChangeEvent<HTMLSelectElement>) => void
 }) => {
   return (
     <div className="space-x-2">
       <select name="currency" id="currency" 
         className="bg-slate-100 py-2 pl-4 pr-8
         rounded-full font-medium text-sm border-0"
-        onChange={onSelCurrency}
+        onChange={(onSelCurrency)}
       >
         <option value="USD"> USD </option>
+        {/*<option value="IDR"> IDR </option>*/}
       </select>
-      <select name="periode" id="periode" 
+      <select name="range" id="range" 
         className="bg-slate-100 py-2 pl-4 pr-8
         rounded-full font-medium text-sm border-0"
         onChange={onSelRange}
       >
-        <option value="1D"> 1D </option>
-        <option value="5D"> 5D </option>
+        <option value="1"> 1D </option>
+        <option value="5"> 5D </option>
       </select>
     </div>
   )
@@ -109,6 +113,7 @@ const TableOptions = ({onSelCurrency, onSelRange}: {
 
 const NewCoins = () => {
   const {coins} = useNewCoins(7)
+  // console.log('NewCoins.render')
 
   return (
     <div className=" border-b pb-1">
@@ -118,118 +123,11 @@ const NewCoins = () => {
 }
 
 
-const useSearchInput = (onDoneTyping: (s: string) => void) => 
-{
-  const [value, setValue] = React.useState<string>('') 
-  const keyword = useDebounce<string>(value)
-  const inputRef = React.useRef<HTMLInputElement>(null)
-
-  React.useEffect(() => {
-    if (inputRef.current) inputRef.current.focus()
-  }, [])
-
-  React.useEffect(() => {
-    if (value === keyword) {
-      onDoneTyping(keyword)
-    }
-  }, [value, keyword])
-
-  const onChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setValue(e.target.value)
-  }, [])
-
-  return {inputRef, value, onChange}
-}
-
-
-const useSearchProcessing = () => 
-{
-  const [search, setSearch] = React.useState('')
-  const [isSearching, startTransition] = React.useTransition()
-  const onSetSearch = React.useCallback((keyword: string) => {
-    startTransition(() => {setSearch(keyword)})
-  }, [])
-
-  return {search, isSearching, onSetSearch}
-}
-
-
-// const useSortAssets = (headers: Array<SortableHeader>) => 
-// {
-//   const [sortBy, setSortBy] = React.useState<SortByOption>(null)
-//   const [isSorting, startTransition] = React.useTransition()
-
-//   const handleSort = (sortable: SortByOption) => {
-//     startTransition(() => {
-//       setSortBy(sortable)
-//     })
-//   }
-//   const headersWithHandleSort =
-//   React.useMemo(() => headers.map((header) => ({
-//     ...header,
-//     handleSort: header.sortable ? handleSort : undefined
-//   })), [])
-
-//   return {sortBy, isSorting, headersWithHandleSort}
-// }
-
-
-const usePagination = (
-  limitPerPage = 25, 
-  totalCount = 200
-) => 
-{
-  const [isPending, startTransition] = React.useTransition()
-  const [offset, setOffset] = React.useState({
-    limit: limitPerPage,
-    index: 0
-  })
-
-  const isLimitReached = offset.index + offset.limit >= totalCount
-  const onNextPage = React.useCallback(() => {
-    if (!isLimitReached)
-      startTransition(() => {
-        setOffset((curr) => ({
-          ...curr,
-          index: curr.index + limitPerPage
-        }))
-      })
-  }, [totalCount])
-
-  const onMoreItems = React.useCallback(() => {
-    if (!isLimitReached)
-      startTransition(() => {
-        setOffset((curr) => ({
-          ...curr,
-          limit: curr.limit + limitPerPage
-        }))
-      })
-    console.log('onMoreItems.called', {isLimitReached, offset})
-  }, [totalCount])
-
-  const onPrevPage = React.useCallback(() => {
-    if (offset.index > 0)
-      startTransition(() => {
-        setOffset((curr) => ({
-          ...curr,
-          index: Math.max(curr.index - limitPerPage, 0)
-        }))
-      })
-  }, [])
-
-  console.log('usePagination.used', {offset, isLimitReached})
-  return {offset, isPending, onNextPage, onPrevPage, onMoreItems}
-}
-
-
 const SearchField = React.memo<{
   onDoneTyping: (s: string) => void
 }>(function SearchInput({onDoneTyping})
 {
-  const {onChange, inputRef, value} = 
-    useSearchInput(onDoneTyping)
-
+  const {onChange, inputRef, value} = useSearchInput(onDoneTyping)
 
   return (
     <div className="relative w-full">
@@ -252,13 +150,24 @@ const SearchField = React.memo<{
 
 const tableAssetHeaders: Array<SortableHeader> = [
   { id: 'name', label: 'Name' },
-  { id: 'price', label: 'Price', sortable: 'price', width: '9em' },
-  { id: 'chart', label: '', width: '6em' },
-  { id: 'change', label: 'Change', sortable: 'change', width: '5em' },
-  { id: 'market-cap', label: 'Market cap', sortable: 'market-cap', width: '8em' },
-  { id: 'trade', label: '', width: '8em' },
+  { id: 'price', label: 'Price', sortable: 'price', width: '7rem' },
+  { id: 'chart', label: '', width: '6rem' },
+  { id: 'change', label: 'Change', sortable: 'change', width: '4rem' },
+  { id: 'market-cap', label: 'Market cap', sortable: 'market-cap', width: '6rem' },
+  { id: 'trade', label: '', width: '6rem' },
 ]
 
+
+type TableOptionsType = {
+  range: number
+  currency: string
+}
+
+
+const TableOptionsContext = 
+  React.createContext<TableOptionsType>({
+    range: 1, currency: 'USD'
+  })
 const TableAssetWithSearchAndPagination = ({
   tableLimitPerPage = 7, 
   search = '',
@@ -294,10 +203,10 @@ const TableAssetWithSearchAndPagination = ({
         </h2>
         <TableOptions 
           onSelRange={(e) => {
-            setRange(5)
+            setRange(parseInt(e.target.value))
           }}
           onSelCurrency={(e) => {
-            setCurrency('USD')
+            setCurrency(e.target.value)
           }}
         />
       </div>
@@ -311,14 +220,15 @@ const TableAssetWithSearchAndPagination = ({
           <CategoryItem name={name} key={name} />
         ))}
       </ul>*/}
-      <AssetCollectionMemo 
-        tableOptions={{range, currency}}
-        coins={coins} 
-        headers={tableAssetHeaders} 
-        isLoading={isLoading}
-        isSearching={isSearching}
-        isPending={isPending}
-      />
+      <TableOptionsContext.Provider value={{range, currency}}>
+        <AssetCollectionMemo 
+          coins={coins} 
+          headers={tableAssetHeaders} 
+          isLoading={isLoading}
+          isSearching={isSearching}
+          isPending={isPending}
+        />
+      </TableOptionsContext.Provider>
       <div className="px-5 py-3">
         <button 
           onClick={onMoreItems}
@@ -342,11 +252,10 @@ const AssetCollectionMemo = React.memo<{
   headers, 
   isLoading, 
   isPending, 
-  isSearching,
-  tableOptions ={}
+  isSearching
 })
 {
-  console.log('AssetCollection.render')
+  // console.log('AssetCollection.render')
 
   return (
     <>
@@ -358,7 +267,6 @@ const AssetCollectionMemo = React.memo<{
           (coin) => <TableItemMobile 
             key={coin.slug} 
             coin={coin}
-            tableOptions={tableOptions}
           />
         ) : Array.from({length:7}).map((_,idx) => (
           <TableItemMobile key={idx}/>
@@ -375,7 +283,7 @@ const AssetCollectionMemo = React.memo<{
           divider={false}
         >
           {isSearching ? (
-            <TableRowItem isSearching />
+            <TableRowItem isLoading />
           ) : ''}
           {!coins || isLoading ? 
             Array.from({length:7}).map((_,idx) => (
@@ -385,7 +293,6 @@ const AssetCollectionMemo = React.memo<{
             <TableRowItem 
               key={coin.slug} 
               coin={coin} 
-              tableOptions={tableOptions}
             />
           ))}
             {isPending ? Array.from({length:3}).map((_,idx) => (
@@ -398,17 +305,24 @@ const AssetCollectionMemo = React.memo<{
 })
 
 
-const TableRowItem = ({coin={}, isLoading, tableOptions={}}: {
-  coin?: CryptoListView
-  isLoading: boolean
-}) => {
+const TableRowItem = ({coin={}, isLoading}: {
+  coin?: Partial<CryptoListView>
+  isLoading?: boolean
+}) => 
+{
+  const {range, currency} = React.useContext(TableOptionsContext)
+  const priceMultiplier = currency === 'IDR' ? 15000 : 1
+
+  const changePercent = range === 1 ?
+    coin.percent_change_24h : coin.percent_change_7d
+
   return (
     <SkeletonTheme enableAnimation={isLoading}>
       <tr className="hover:bg-slate-100/50">
         <td className="flex items-center gap-3 flex-grow
-          pl-5 pr-3 py-2.5 text-left">
+          pl-5 pr-1.5 py-2.5 text-left">
           <span className="bg-slate-200 w-8 h-8
-            flex items-center rounded-full">
+            flex items-center rounded-full shrink-0">
             {coin.logo ? (
               <span className="w-fit mx-auto
                 overflow-hidden rounded-full">
@@ -418,41 +332,47 @@ const TableRowItem = ({coin={}, isLoading, tableOptions={}}: {
           </span>
           <div>
             <h3 className="font-medium">
-              {coin.name || <Skeleton width="9rem" />}
+              {coin.name || <Skeleton width="5rem" />}
             </h3>
             <span className="text-gray-500 ">
               {coin.symbol || <Skeleton width="3rem" />}
             </span>
           </div>
         </td>
-        <td className="text-right px-3 py-2.5">
+        <td className="text-right px-1.5 py-2.5">
           {coin.price ? (
-            <PriceDisplay price={coin.price} />
+            <PriceDisplay 
+              price={coin.price * priceMultiplier} 
+              currency={currency}
+            />
           ) : <Skeleton />}
         </td>
         <td className="pl-3 pr-2 py-2.5">
           {coin.symbol ? (
             <MiniSparkLine 
-              range={tableOptions.range}
+              range={range}
               symbol={coin.symbol} 
               height={100}
             />
           ) : <Skeleton />}
         </td>
         <td className="pl-2 pr-3 py-2.5">
-          {coin.percent_change_24h ? (
+          {changePercent ? (
             <StyledNumericDisplay 
-              valueWithSign={coin.percent_change_24h}>
-              <DecimalDisplay value={coin.percent_change_24h} />
+              valueWithSign={changePercent}>
+              <DecimalDisplay value={changePercent} />
             </StyledNumericDisplay>
           ) : <Skeleton />}
         </td>
-        <td className="px-3 py-2.5 text-center">
+        <td className="px-1.5 py-2.5 text-center">
           {coin.market_cap ? (
-            <PriceDisplay price={coin.market_cap} />
+            <PriceDisplay 
+              price={coin.market_cap * priceMultiplier} 
+              currency={currency}
+            />
           ) : <Skeleton />}
         </td>
-        <td className="pl-3 pr-5 py-2.5">
+        <td className="pl-1.5 pr-5 py-2.5">
           {coin.slug ? (
             <Link to={`/price/${coin.slug}`} 
               className="primary-btn-sm"
@@ -484,9 +404,16 @@ const MiniSparkLine = ({symbol, height, range=1}: {
 }
 
 
-const TableItemMobile = ({coin={}, tableOptions={}}: {
-  coin?: CryptoListView
-}) => {
+const TableItemMobile = ({coin={}}: {
+  coin?: Partial<CryptoListView>
+}) => 
+{
+  const {range, currency} = React.useContext(TableOptionsContext)
+  const priceMultiplier = currency === 'IDR' ? 15000 : 1
+
+  const changePercent = range === 1 ?
+    coin.percent_change_24h : coin.percent_change_7d
+
   return (
     <li>
       <Link 
@@ -498,7 +425,7 @@ const TableItemMobile = ({coin={}, tableOptions={}}: {
       >
         <div className="flex items-center gap-3 grow">
           <span className="bg-slate-200 w-8 h-8
-            flex items-center rounded-full">
+            flex items-center rounded-full shrink-0">
             {coin.logo ? (
               <span className="w-fit mx-auto
                 overflow-hidden rounded-full">
@@ -515,28 +442,32 @@ const TableItemMobile = ({coin={}, tableOptions={}}: {
             </span>
           </div>
         </div>
-        <span className="w-32">
+        <span className="w-20">
           {coin.symbol ? (
             <MiniSparkLine 
-              range={tableOptions.range}
+              range={range}
               symbol={coin.symbol} 
+              height={100}
             />
           ) : <Skeleton width="5rem" />}
         </span>
         <div className="text-right">
           <p>
             {coin.price ? (
-              <PriceDisplay price={coin.price} />
+              <PriceDisplay 
+                price={coin.price * priceMultiplier} 
+                currency={currency} 
+              />
             ) : 
             <Skeleton width="6rem" />}
           </p>
           <small>
-            {coin.percent_change_24h ? (
+            {changePercent ? (
               <StyledNumericDisplay 
-                valueWithSign={coin.percent_change_24h}
+                valueWithSign={changePercent}
               >
                 <DecimalDisplay 
-                  value={coin.percent_change_24h} 
+                  value={changePercent} 
                 />
               </StyledNumericDisplay>
             ) :
@@ -549,52 +480,52 @@ const TableItemMobile = ({coin={}, tableOptions={}}: {
 }
 
 
-const CategoryItem = ({name}: {
-  name: string
-}) => {
-  return (
-    <li>
-      <Link to="/" className="bg-slate-100 p-1 pr-2
-        font-medium text-sm rounded-md flex items-center
-        gap-1 active:text-blue-600 active:bg-slate-100/50">
-        <span className="w-7 h-7 rounded-md
-          bg-blue-600"></span>
-        <span>{name}</span>
-      </Link>
-    </li>
-  )
-}
+// const CategoryItem = ({name}: {
+//   name: string
+// }) => {
+//   return (
+//     <li>
+//       <Link to="/" className="bg-slate-100 p-1 pr-2
+//         font-medium text-sm rounded-md flex items-center
+//         gap-1 active:text-blue-600 active:bg-slate-100/50">
+//         <span className="w-7 h-7 rounded-md
+//           bg-blue-600"></span>
+//         <span>{name}</span>
+//       </Link>
+//     </li>
+//   )
+// }
 
 
-const ExploreAssetsMobile = ({title, coin={}}: {
-  title: string
-  coin?: CryptoListView
-}) => {
-  return (
-    <div>
-      <Link to="/" className="flex hover:bg-slate-100/40 gap-4
-        items-center px-5 py-3">
-        <span className="bg-slate-200 w-8 h-8
-          flex items-center rounded-full">
-          {coin.logo ? (
-            <span className="w-fit mx-auto
-              overflow-hidden rounded-full">
-              <img src={coin.logo} width="20px"/>
-            </span>
-          ) : ''}
-        </span>
-        <div>
-          <h2 className="font-medium ">{title}</h2>
-          <p className="text-slate-500">
-            {coin?.name}<span 
-              className="text-green-500"
-            > {coin?.percent_change_24h} </span> price change
-          </p>
-        </div>
-      </Link>
-    </div>
-  )
-}
+// const ExploreAssetsMobile = ({title, coin={}}: {
+//   title: string
+//   coin?: Partial<CryptoListView>
+// }) => {
+//   return (
+//     <div>
+//       <Link to="/" className="flex hover:bg-slate-100/40 gap-4
+//         items-center px-5 py-3">
+//         <span className="bg-slate-200 w-8 h-8
+//           flex items-center rounded-full shrink-0">
+//           {coin.logo ? (
+//             <span className="w-fit mx-auto
+//               overflow-hidden rounded-full">
+//               <img src={coin.logo} width="20px"/>
+//             </span>
+//           ) : ''}
+//         </span>
+//         <div>
+//           <h2 className="font-medium ">{title}</h2>
+//           <p className="text-slate-500">
+//             {coin?.name}<span 
+//               className="text-green-500"
+//             > {coin?.percent_change_24h} </span> price change
+//           </p>
+//         </div>
+//       </Link>
+//     </div>
+//   )
+// }
 
 
 const ExploreAssets = ({title, coins}: {
@@ -623,7 +554,7 @@ const ExploreAssets = ({title, coins}: {
 
 
 const ExploreAssetsItem = ({coin = {}}: {
-  coin?: CryptoListView
+  coin?: Partial<CryptoListViewWithPassTime>
 }) => 
 {
   return (
@@ -636,7 +567,7 @@ const ExploreAssetsItem = ({coin = {}}: {
       >
         <div className="flex items-center gap-3 grow">
           <span className="bg-slate-200 w-8 h-8
-            flex items-center rounded-full">
+            flex items-center rounded-full shrink-0">
             {coin.logo ? (
               <span className="w-fit mx-auto
                 overflow-hidden rounded-full">

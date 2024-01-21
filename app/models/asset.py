@@ -17,6 +17,9 @@ class Asset(db.Model, Base):
         self.is_active = is_active
         self.is_fiat = is_fiat
 
+    def __repr__(self):
+        return "<name '{}'>".format(self.name)
+
     def to_dict(self):
         # Convert cryptocurrency object to a dictionary for JSON response
         return {

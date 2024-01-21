@@ -25,7 +25,9 @@ def store_cache_periodically():
     store_list_crypto.delay()
 
 
-HOUR_IN_SECONDS = 1 * 60 * 60 
+MINUTE_IN_SECONDS = 60
+HOUR_IN_SECONDS = MINUTE_IN_SECONDS * 60 
+
 
 def get_cache_key(name: str, suffix = None) -> str:
     # print(f"get_cache_key {(name, suffix, cache[name]['key'])}")
@@ -147,7 +149,7 @@ def ensure_fiat_map(**kwargs):
     return mapping
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_list_crypto(**kwargs):
     page = int(kwargs.get('page')) if \
         kwargs.get('page') else 1
@@ -308,7 +310,7 @@ def store_cache_with_cmc_id_as_key_and_pipeline(
     return data
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_quotes(bundle: bool = False, **kwargs):
     return store_cache_with_cmc_id_as_key_and_pipeline(
         'quotes', 
@@ -319,7 +321,7 @@ def store_quotes(bundle: bool = False, **kwargs):
     )
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_metadata(bundle: bool = False, **kwargs):
     return store_cache_with_cmc_id_as_key_and_pipeline(
         'metadata', 
@@ -329,7 +331,7 @@ def store_metadata(bundle: bool = False, **kwargs):
     )
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_fiat_map(symbol: str | None):
     fetched_data = api.fetch_fiat_map()
     if not fetched_data or not fetched_data.get('data'):
@@ -346,7 +348,7 @@ def store_fiat_map(symbol: str | None):
         result_dict.get(symbol)
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_global_statistic(**kwargs):
     fetched_data = api.fetch_global_statistic()
     if not fetched_data:
@@ -521,7 +523,7 @@ def store_id_map_caches(data: dict, cache_keys: tuple):
         pipe.execute()
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_cmc_id_map(**kwargs):
     page = int(kwargs.get('page')) if kwargs.get('page') else 1
     resp_data = api.fetch_cmc_id_map(page)
@@ -586,7 +588,7 @@ def store_cmc_id_map(**kwargs):
     return id_map_dict_by_id
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_historial_data(**kwargs):
     symbol = kwargs.get('symbol').upper() if \
         kwargs.get('symbol') else None
@@ -601,7 +603,7 @@ def store_historial_data(**kwargs):
     )
 
 
-@shared_task(serializer='pickle')
+@shared_task
 def store_spark_data(**kwargs):
     symbol = kwargs.get('symbol').upper() if \
         kwargs.get('symbol') else None
@@ -614,4 +616,37 @@ def store_spark_data(**kwargs):
         api.fetch_yahoo_spark(symbol)
         # , stale_time_in_hour= 24
     )
+
+
+@shared_task
+def store_ip_user(identifier: str):
+    pass
+
+
+@shared_task
+def store_pending_order(**kwargs) -> bool:
+    try:
+        redis_client.set(
+            'orderbook:{}'.format(kwargs.get('uuid')),
+            pickle.dumps(kwargs),
+            ex= 2 * MINUTE_IN_SECONDS
+        )
+        return True
+    except Exception:
+        return False
+
+
+@shared_task
+def get_pending_order(uuid: str) -> bool:
+    if not uuid:
+        return None
+
+    try:
+        cached_data = redis_client.get(
+            'orderbook:{}'.format(uuid)
+        )
+        return pickle.loads(cached_data) if \
+            cached_data else None
+    except Exception:
+        return None
 

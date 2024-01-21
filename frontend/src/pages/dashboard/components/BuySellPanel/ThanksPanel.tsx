@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom"
 import { WalletBalanceInfo } from './WalletBalanceInfo'
 import { FormOrderContext } from "./BuySellPanel"
+import { formatDecimal } from '@/lib/helper'
 
 
 export const ThanksPanel = ({context, handleState, onDone}: {
@@ -18,9 +19,8 @@ export const ThanksPanel = ({context, handleState, onDone}: {
       <h2 className="text-4xl text-blue-600 leading-9 pt-5">
         {
           order.order_type === 'buy'
-          ? `${order.amount} ${asset?.asset_symbol}`
-          : `${Math.floor(
-              order.amount * order.price
+          ? `${formatDecimal(order.amount, 7)} ${asset?.asset_symbol}`
+          : `${Math.round(order.amount * order.price
             )} ${wallet?.asset_symbol}`
         }
       </h2>

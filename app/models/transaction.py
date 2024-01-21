@@ -22,6 +22,9 @@ class Transaction(db.Model):
         self.order_uuid = order_uuid
         self.timestamp = datetime.datetime.utcnow()
 
+    def __repr__(self):
+        return "<order_uuid '{}'>".format(self.order_uuid)
+
     def to_dict(self):
         # Convert transaction object to a dictionary for JSON response
         return {
