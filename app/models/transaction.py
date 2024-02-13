@@ -18,7 +18,7 @@ class Transaction(db.Model):
     def __init__(self, user_id, order_id, order_uuid, transaction_type):
         self.user_id = user_id
         self.order_id = order_id
-        self.transaction_type = transaction_type
+        self.transaction_type = transaction_type[:20]
         self.order_uuid = order_uuid
         self.timestamp = datetime.datetime.utcnow()
 

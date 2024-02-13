@@ -198,7 +198,7 @@ export const CoinListItemBase: React.FC<Partial<
 						<Skeleton circle height={30} width={30} />
 					)}
 				</span>
-				<div className="overflow-x-hidden grow">
+				<div className="w-full">
 					<h3 className="font-medium truncate">
 						{name || <Skeleton />}
 					</h3>
@@ -220,14 +220,14 @@ export const CoinListItem: React.FC<CoinListItemProps> = (
 	{ coin = {}, isLoading }
 ) => {
 	return (
-		<div className="flex gap-3 justify-between py-3 px-5">
+		<div className="flex gap-3 py-3 px-5">
 			<SkeletonTheme enableAnimation={isLoading}>
 				<CoinListItemBase
 					logo={coin.logo}
 					name={coin.name}
 					symbol={coin.symbol}
 				/>
-				<div className="text-right overflow-x-hidden grow">
+				<div className="text-right ml-5 w-[5rem] grow">
 					<p className="truncate">{coin.price
 						? <PriceDisplay price={coin.price} />
 						: <Skeleton />}

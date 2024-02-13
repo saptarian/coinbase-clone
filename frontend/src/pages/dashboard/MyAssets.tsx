@@ -1,8 +1,8 @@
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
+import Skeleton from 'react-loading-skeleton'
 import React from 'react'
 import { Link, useNavigate, useOutletContext } from 'react-router-dom'
 
-import { PriceDisplay } from '@/components/Numeric'
+import { PriceDisplay, DecimalDisplay } from '@/components/Numeric'
 import TableTemplate from '@/components/TableTemplate' 
 import TransactionList from './components/TransactionList'
 import { useWallets, useWallet, useCoinPrice } from '@/lib/hooks'
@@ -11,55 +11,70 @@ import { WalletType } from '@/types'
 
 
 const myCashHeaders = [
-  { id: 'name', label: 'Name', width: '35%' },
-  { id: 'balance', label: 'Total balance', width: '8em' },
-  { id: '_', label: '', width: '3em' },
+  { id: 'name', label: 'Name' },
+  { id: 'balance', label: 'Total balance', width: '16rem' },
+  { id: '_', label: '', width: '2rem' },
 ]
 
 
 const myCryptoHeaders = [
-  { id: 'name', label: 'Name', width: '35%' },
-  { id: 'balance', label: 'Crypto Balance', width: '8em' },
-  { id: '_', label: '', width: '3em' },
+  { id: 'name', label: 'Name' },
+  { id: 'balance', label: 'Crypto Balance', width: '16rem' },
+  { id: '_', label: '', width: '2rem' },
 ]
 
 
-export function MyAssets() {
+export function MyAssets() 
+{
   const { pref } = useOutletContext<DashboardContextType>()
   const [walletList, isLoading] = useWallets()
-  const [
-    cryptoPrice, 
-    setCryptoPrice
-  ] = React.useState<{[K in string]: number} | null>(null)
-  
-  // console.log('MyAssets.render', cryptoPrice, walletList)
+  const [cryptoPrices, setCryptoPrices] = React.useState<{
+    [x: string]: number
+  } | null>(null)
+  const [length, setLength] = React.useState({
+    wallets: 0,
+    cryptoWallets: 0
+  })
+  // console.log('MyAssets.render', {cryptoPrices, walletList})
 
-  const cryptoWallets: Array<WalletType> = []
-  const wallets: Array<WalletType> = []
-  let fiatBalance = 0
-  
+  const {fiatBalance, wallets, cryptoWallets} = React.useMemo(() => {
+    let fiatBalance = 0
+    const cryptoWallets: Array<WalletType> = []
+    const wallets: Array<WalletType> = []
 
-  if (walletList) {
-    walletList.forEach(wallet => {
-      if (wallet.asset_is_fiat === true) {
-        wallets.push(wallet)
-        fiatBalance += wallet.balance
-      }
-      else {
-        cryptoWallets.push(wallet)
-      }
+    // from array wallet split fiat and crypto
+    if (walletList) {
+      walletList.forEach(wallet => {
+        if (wallet.asset_is_fiat === true) {
+          wallets.push(wallet)
+          fiatBalance += wallet.balance
+        }
+        else {
+          cryptoWallets.push(wallet)
+        }
+      })
+      setLength({
+        wallets: wallets.length, 
+        cryptoWallets: cryptoWallets.length
+      })
+    }
+    console.log('walletList.memo', {
+      fiatBalance, wallets, cryptoWallets
     })
-  }
+    return {fiatBalance, wallets, cryptoWallets}
+  }, [walletList])
+
 
   const cryptoBalance = React.useMemo(() => {
     let balance = 0
+    if (cryptoPrices)
+      balance = Object.values(cryptoPrices).reduce(
+        (a,v) => a+v
+      , 0)
 
-    if (cryptoPrice)
-      balance = Object.values(
-        cryptoPrice).reduce((a,v) => a+v, 0)
-    
+    // console.log('cryptoPrices.memo', {balance})
     return balance
-  }, [cryptoPrice])
+  }, [cryptoPrices])
 
 
   return (
@@ -69,57 +84,84 @@ export function MyAssets() {
         <div className="md:space-y-3 grow">
           <section className="md:container-section">
             <div className="px-5 py-3 border-b">
-              <CashInfo 
-                value={fiatBalance}
-                title="My cash"
-              />
+              {isLoading ? 
+                <Skeleton width="4rem" count={2} />
+              :
+                <CashInfo 
+                  value={fiatBalance}
+                  title="My cash"
+                />
+              }
             </div>
-            {wallets.length > 0 ? (
+            {!wallets.length && !isLoading ? (
+              <NoCryptoWallet />
+            ) : (
               <TableTemplate
                 className="first:pl-5 last:pr-5 py-3"
                 headers={myCashHeaders}>
-                {wallets.map((wallet) => (
+                {isLoading ? Array.from({
+                  length: length.wallets
+                }, (_,idx) => (
+                  <tr key={idx}>
+                    <td className="p-5"> 
+                      <Skeleton width="6rem" /> 
+                    </td>
+                    <td className="py-5"> 
+                      <Skeleton width="10rem" /> 
+                    </td>
+                  </tr>
+                )) : wallets.map((wallet) => (
                   <MyCashBodyTable 
                     key={wallet.asset_slug}
                     wallet={wallet}
-                    isLoading={isLoading}
                   />
                 ))}
               </TableTemplate>
-            ) : (
-              <NoCryptoWallet />
             )}
           </section>
           <section className="md:container-section
             max-md:border-y">
             <div className="px-5 py-3 border-b">
-              <CashInfo 
-                value={cryptoBalance}
-                title="My crypto"
-              />
+              {isLoading || (!cryptoBalance && cryptoWallets.length) ? 
+                <Skeleton width="4rem" count={2} />
+              :
+                <CashInfo 
+                  value={cryptoBalance}
+                  title="My crypto"
+                />
+              }
             </div>
-            {cryptoWallets.length > 0 ? (
+            {!cryptoWallets.length && !isLoading ? (
+              <NoCryptoWallet />
+            ) : (
               <TableTemplate
                 className="first:pl-5 last:pr-5 py-3"
                 headers={myCryptoHeaders}>
-                {cryptoWallets.map((wallet) => (
+                {isLoading ? Array.from({
+                  length: length.cryptoWallets
+                }, (_,idx) => (
+                  <tr key={idx}>
+                    <td className="p-5"> 
+                      <Skeleton width="6rem" /> 
+                    </td>
+                    <td className="py-5"> 
+                      <Skeleton width="10rem" /> 
+                    </td>
+                  </tr>
+                )) : cryptoWallets.map((wallet) => (
                   <CryptoWalletItem 
                     key={wallet.asset_slug}
                     data={wallet}
-                    isLoading={isLoading}
                     slug={wallet.asset_slug}
                     balance={wallet.balance}
                     currency={pref.currency}
-                    setCryptoPrice={setCryptoPrice}
+                    setCryptoPrices={setCryptoPrices}
                   />
                 ))}
               </TableTemplate>
-            ) : (
-              <NoCryptoWallet />
             )}
           </section>
         </div>
-
         <div className="lg:w-[350px] shrink-0">
           <section className="md:container-section divide-y">
             <h2 className="px-5 py-3 font-medium">
@@ -130,7 +172,6 @@ export function MyAssets() {
         </div>
       </div>
     </main>
-
   )
 }
 
@@ -142,6 +183,7 @@ const CashInfo = ({
   value: number | string
 }) => 
 {
+  // console.log('CashInfo.render', value)
   return (
     <>
       {title ? (
@@ -159,7 +201,8 @@ const CashInfo = ({
 }
 
 
-const NoCryptoWallet = () => {
+const NoCryptoWallet = () => 
+{
   return (
     <div className="w-fit py-12 px-5 mx-auto text-center">
       <span className="mb-2">
@@ -181,136 +224,129 @@ const NoCryptoWallet = () => {
 
 type CryptoWalletItemProps = {
   data: WalletType
-  setCryptoPrice: (
+  setCryptoPrices: (
     v: React.SetStateAction<{[K in string]: number} | null>
   ) => void
-  isLoading: boolean
   currency: string
   balance: number
   slug: string
 }
 
 const CryptoWalletItem: React.FC<CryptoWalletItemProps> = ({
-  data, setCryptoPrice, isLoading, currency, balance, slug
+  data, setCryptoPrices, currency, balance, slug
 }) => 
 {
-  const cryptoPrice = useCoinPrice(slug, currency)
+  const cryptoPrices = useCoinPrice(slug, currency)
+  // console.log('CryptoWalletItem.render', 
+  //   {balance, slug, currency, cryptoPrices}
+  // )
 
-  // console.log('CryptoWalletItem.render', cryptoPrice, balance)
-
-  React.useEffect(() => 
-  {
-    if (cryptoPrice)
-      setCryptoPrice((currentObj) => 
-        ({
-          ...currentObj,
-          [slug]: cryptoPrice * balance
-        })
+  React.useEffect(() => {
+    if (cryptoPrices)
+      setCryptoPrices((currentObj) => 
+        ({...currentObj, [slug]: cryptoPrices * balance})
       )
-
-  }, [cryptoPrice])
+    // console.log('CryptoWalletItem.effect')
+  }, [balance, slug, currency])
 
 
   return (
-    <MyCryptoBodyTable
-      wallet={data}
-      isLoading={isLoading}
-    />
+    <MyCryptoBodyTable wallet={data} />
   )
 }
 
 
-const WalletLogo = ({walletSlug}: {walletSlug: string}) => {
-  const [wallet,] = useWallet(walletSlug)
+const WalletLogo = ({slug}: {slug: string}) => 
+{
+  const [wallet,isLoading] = useWallet(slug)
 
-  return (
-    <img src={wallet?.asset_logo ?? ''} />
-  )
+  if (isLoading) 
+    return <Skeleton circle width="16px" height="16px" />
+
+  return wallet?.asset_logo 
+    ? <img src={wallet.asset_logo} />
+    : <div className="w-2 h-2 bg-stone-100 rounded-full"></div>
 }
 
 
-const MyCryptoBodyTable = (
-  {wallet, isLoading}: {
-    wallet: WalletType
-    isLoading: boolean
-  }
-) => 
+const MyCryptoBodyTable = ({wallet={}}: {
+  wallet: Partial<WalletType>
+}) =>
 {
   const navigate = useNavigate()
 
-
   return (
-    <SkeletonTheme enableAnimation={isLoading}>
-      <tr onClick={() => {
-          if (!isLoading && wallet.asset_slug)
-            navigate('/accounts/' + wallet.asset_slug)
-        }} className="hover:bg-slate-100/50 cursor-pointer">
-        <td className="flex items-center gap-3 py-5 pl-5">
-          <span className="w-4" >
-            {wallet.asset_slug ? (
-              <WalletLogo walletSlug={wallet.asset_slug} />
-            ) : (
-              <Skeleton circle height="24px" width="24px" />
-            )}
-          </span>
-          <p className="font-medium">
-            {wallet.asset_name || <Skeleton />}
-          </p>
-        </td>
-        <td>
-          <p>{wallet.balance != null ? `${
-            wallet.balance} ${wallet.asset_symbol}` : (
-              <Skeleton /> 
-            )}
-          </p>
-        </td>
-        <td className="pr-5 text-center">
-        </td>
-      </tr>
-    </SkeletonTheme>
+    <tr 
+      onClick={() => {
+        if (wallet.asset_slug)
+          navigate('/accounts/' + wallet.asset_slug)
+      }} 
+      className="hover:bg-slate-100/50 cursor-pointer"
+    >
+      <td className="flex items-center gap-3 py-5 pl-5">
+        <span className="w-4" >
+          {wallet.asset_slug ? (
+            <WalletLogo slug={wallet.asset_slug} />
+          ) : ''}
+        </span>
+        <p className="font-medium">
+          {wallet.asset_name}
+        </p>
+      </td>
+      <td>
+        <p>
+          {wallet.balance != null ? (
+            <>
+              <DecimalDisplay 
+                value={wallet.balance} 
+                decPlaces={8} 
+              /> 
+              <span className="pl-1.5 font-medium text-gray-500">
+                {wallet.asset_symbol}
+              </span>
+            </>
+          ) : ''}
+        </p>
+      </td>
+      <td className="pr-5 text-center">
+      </td>
+    </tr>
   )
 }
 
 
-const MyCashBodyTable = (
-  {wallet, isLoading}: {
-    wallet: WalletType
-    isLoading: boolean
-  }
-) => 
+const MyCashBodyTable = ({wallet={}}: {
+  wallet: Partial<WalletType>
+}) =>
 {
   const navigate = useNavigate()
 
-
   return (
-    <SkeletonTheme enableAnimation={isLoading}>
-      <tr onClick={() => {
-          if (!isLoading && wallet.asset_slug)
-            navigate('/accounts/' + wallet.asset_slug)
-        }} className="hover:bg-slate-100/50 cursor-pointer">
-        <td className="flex items-center gap-3 py-5 pl-5">
-          <span className="w-4" >
-            {wallet.asset_slug ? (
-              <WalletLogo walletSlug={wallet.asset_slug} />
-            ) : (
-              <Skeleton circle height="24px" width="24px" />
-            )}
-          </span>
-          <p className="font-medium">
-            { wallet.asset_name || <Skeleton /> }
-          </p>
-        </td>
-        <td>
-          <p>{wallet.balance != null ? (
-              <PriceDisplay price={ wallet.balance } />
-            ) : (
-              <Skeleton /> 
-            )}
-          </p>
-        </td>
-        <td className="pr-5 text-center">
-        </td>
-      </tr>
-    </SkeletonTheme>
+    <tr 
+      onClick={() => {
+        if (wallet.asset_slug)
+          navigate('/accounts/' + wallet.asset_slug)
+      }} 
+      className="hover:bg-slate-100/50 cursor-pointer"
+    >
+      <td className="flex items-center gap-3 py-5 pl-5">
+        <span className="w-4" >
+          {wallet.asset_slug ? (
+            <WalletLogo slug={wallet.asset_slug} />
+          ) : ''}
+        </span>
+        <p className="font-medium">
+          { wallet.asset_name }
+        </p>
+      </td>
+      <td>
+        <p>{wallet.balance != null ? (
+            <PriceDisplay price={ wallet.balance } />
+          ) : ''}
+        </p>
+      </td>
+      <td className="pr-5 text-center">
+      </td>
+    </tr>
   )
 }

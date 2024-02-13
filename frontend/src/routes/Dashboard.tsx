@@ -175,7 +175,7 @@ export const DashboardRoutes = {
             toast(err.message)
           })
 
-        toast("Logged out")
+        // toast("Logged out")
         return redirect("/")
       },
       loader: () => redirect("/404")
@@ -187,7 +187,7 @@ export const DashboardRoutes = {
 async function dashboardLoader({request}: LoaderFunctionArgs) {
   const id = 'loader'
   // console.log('important dashboardLoader executed')
-  const response = await validateIdentity().catch(e => e)
+  const auth = await validateIdentity().catch(e => e)
   
   const redirectWithFrom = (to: string = '/') => {
     const params = new URLSearchParams()
@@ -195,17 +195,16 @@ async function dashboardLoader({request}: LoaderFunctionArgs) {
     return redirect(`${to}?${params.toString()}`)
   }
 
-  if (response.status >= 400) {
-    toast(response.message, {id})
+  if (auth.status >= 400) {
+    toast(auth.message, {id})
 
-    if (401 == response.status || 422 == response.status) {
+    if (401 == auth.status || 422 == auth.status) {
       storeAuth(null)
       return redirectWithFrom('/signin')
     }
-    throw response
   }
 
-  if (response.status == 202) 
+  if (auth.status == 202) 
     return redirect("/setup/phone")
 
   let userData = getUser()

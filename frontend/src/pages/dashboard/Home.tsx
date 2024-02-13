@@ -1,13 +1,17 @@
 import { PriceDisplay } from '@/components/Numeric'
 import SimpleChart from '@/components/SimpleChart'
+import LatestNews from '@/components/LatestNews'
 import TransactionList from './components/TransactionList'
-import { useCoins, useWallets, useTransactionSparkData } from '@/lib/hooks'
+import { 
+	useCoins, 
+	useWallets, 
+	useTransactionSparkData, 
+} from '@/lib/hooks'
 import CoinList from './components/CoinList'
 
-import img404 from '@/assets/78f98b1dc6c55f9a.png'
 
-
-export function Home() {
+export function Home() 
+{
   const [data,] = useTransactionSparkData()
 	// console.log('Home.render', data, isLoading)
 
@@ -21,7 +25,9 @@ export function Home() {
 						<BalanceInfo />
             <div className="w-44">
 							<SimpleChart 
-								data={data.length ? data.slice(-100) : undefined}
+								data={data.length 
+									? data.slice(-100) 
+									: Array(8).fill(0)}
 							/>
             </div>
 					</div>
@@ -33,11 +39,14 @@ export function Home() {
 					<TransactionList limit={7} />
 				</section>
 
-				<section className="md:container-section hidden lg:block">
-					<News />
+				<section className="md:container-section">
+					<LatestNews  
+						title="Latest Cryptocurrencies News"
+					/>
 				</section>
 			</div>
-			<div className="lg:w-[300px] shrink-0">
+			<div className="lg:w-[300px] shrink-0 
+				flex flex-col gap-3">
 				<section className="md:container-section">
 					<ToptenCryptos />
 				</section>
@@ -47,7 +56,8 @@ export function Home() {
 }
 
 
-const FiatBalanceInfo = () => {
+const FiatBalanceInfo = () => 
+{
 	const [walletList,] = useWallets()
 	let fiatBalance = 0
 
@@ -64,9 +74,9 @@ const FiatBalanceInfo = () => {
 }
 
 
-const ToptenCryptos = () => {
+const ToptenCryptos = () => 
+{
 	const { coins, isLoading } = useCoins({ limit: 10 })
-
 
 	return (
 		<CoinList
@@ -79,7 +89,8 @@ const ToptenCryptos = () => {
 }
 
 
-const BalanceInfo = () => {
+const BalanceInfo = () => 
+{
 	return (
 		<div className="leading-5">
 			<h3 className="font-medium text-lg text-stone-500">
@@ -90,32 +101,6 @@ const BalanceInfo = () => {
 		</div>
 	)
 }
-
-
-const News = () => {
-	return (
-		<div className="p-5">
-			<h1 className="font-medium text-lg">
-				Latest Cryptocurrencies News</h1>
-			<div className="text-center space-y-5 mb-12 
-	      px-7 max-w-screen-sm mx-auto">
-				<div className="my-12">
-					<img src={img404} alt="404" width="300px"
-						className="mx-auto"
-					/>
-				</div>
-				<h2 className="font-medium text-3xl px-12">
-					We can't find the page you're looking for
-				</h2>
-				<p className="py-3">That source didn't work.
-					Perhaps you'd like to learn about crypto or
-					get help from Coinbase Support.
-				</p>
-			</div>
-		</div>
-	)
-}
-
 
 // const WatchListRow: React.FC<{
 // 	isLoading: boolean,

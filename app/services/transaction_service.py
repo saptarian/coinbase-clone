@@ -55,8 +55,8 @@ class TransactionService:
 
         results = db.session.execute(stmt)
 
-        print(stmt)
-        print(results)
+        # print(stmt)
+        # print(results)
 
         rows = []
         for row in results:
@@ -83,4 +83,3 @@ class TransactionService:
         db.session.add(data)
         db.session.commit()
 
-    # TODO: Add more transaction-related services (transaction history, analytics, etc.) as needed

@@ -7,6 +7,8 @@ import {
   fiatMapQuery,
   coinListQuery, 
   sparkDataQuery,
+  fiatRatesQuery,
+  latestNewsQuery,
   walletListQuery,
   coinDetailQuery,
   historicalDataQuery,
@@ -15,8 +17,11 @@ import {
   coinGlobalStatisticQuery,
 } from '@/lib/queries'
 import { 
+  NewsCard,
   CryptoList, 
   WalletType,
+  SortByOption, 
+  SortableHeader,
   HistoricalData,
   CryptoWithLogo,
   CryptoListView,
@@ -26,8 +31,6 @@ import {
   CoinQueryOptions, 
   WalletOrNotFound, 
   CryptoWithNumeric,
-  SortableHeader,
-  SortByOption, 
 } from '@/types'
 
 
@@ -204,6 +207,42 @@ export function useHistorialData(
 }
 
 
+export function useFiatRates(
+  symbols: Array<string> = ['USD','EUR','JPY','GBP','CNY','AUD','IDR']
+): [{[x: string]: number} | undefined, boolean]
+{
+  const { data, isLoading } = useQuery(fiatRatesQuery())
+  if (data && symbols.length) {
+    const mapping: {[x: string]: number | never} = {}
+    for (const symbol of symbols) {
+      if (data[symbol]) mapping[symbol] = data[symbol]
+    }
+    return [mapping, isLoading]
+  }
+  return [ data, isLoading ] 
+}
+
+
+export function useFiatRate(symbol: string): 
+  [number | undefined, boolean]
+{
+  const { data, isLoading } = useQuery(fiatRatesQuery())
+  if (!data) return [ data, isLoading ]
+  else return [data[symbol], isLoading]
+}
+
+
+export function useLatestNews(limit: number = 5): 
+  [Array<NewsCard> | undefined, boolean] 
+{
+  const { data, isLoading } = useQuery(latestNewsQuery())
+  if (data && limit > 0) {
+    return [data.slice(0,limit), isLoading]
+  }
+  return [ data, isLoading ] 
+}
+
+
 export function useSparkData(
   symbol: string,
   range: number = 1
@@ -301,6 +340,8 @@ export function useWallet(
 export const useFormOrder = () => {
   const { Form, data, formData } = useFetcher()
   const isSubmiting = formData != null
+
+  // console.log('useFormOrder.used', {data})
 
   return { 
     Form, 
@@ -473,15 +514,15 @@ export const usePagination = (
 export function useSessionTimeout(ms = 1000 * 60) {
   const submit = useSubmit()
   
+  const handleTimeout = React.useCallback(() => {
+    submit(null, { 
+      method: "post", 
+      action: "/signout" 
+    })
+  }, [])
+
   React.useEffect(() => {
     let timeoutId: number
-
-    const handleTimeout = () => {
-      submit(null, { 
-        method: "post", 
-        action: "/signout" 
-      })
-    }
 
     const handleEvent = throttle(() => {
       window.clearTimeout(timeoutId)
@@ -515,6 +556,8 @@ export function useSessionTimeout(ms = 1000 * 60) {
       window.clearTimeout(timeoutId)
     }
   }, [ms])
+
+  return handleTimeout
 }
 
 

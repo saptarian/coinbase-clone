@@ -41,7 +41,7 @@ export const ThanksPanel = ({context, handleState, onDone}: {
         className="primary-btn-sm block w-full">
         Buy & Sell
       </button>
-      <Link to={`/accounts/${asset?.asset_slug ?? 'USD'}`} 
+      <Link to={`/accounts/${asset?.asset_slug ?? asset?.cmc_asset_slug}`} 
         className="secondary-btn-sm block w-full"
         onClick={() => {
           if (onDone)

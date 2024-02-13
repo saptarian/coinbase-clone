@@ -1,19 +1,16 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 
-from app.decorators import user_id_required
-from app.services.wallet_service import WalletService
-
-
+from app.utils.decorators import user_id_required
+from app.services import wallet_svc
 wallets_bp = Blueprint('wallet', __name__)
-wallet_service = WalletService()
 
 
 @wallets_bp.route('/', methods=['GET'])
 @jwt_required()
 @user_id_required
 def get_user_wallets(user_id):
-    wallets = wallet_service.get_wallets_by_user_id(user_id)
+    wallets = wallet_svc.get_wallets_by_user_id(user_id)
     # wallet_list = [wallet.to_dict() for wallet in wallets]
     return jsonify(wallets)
 
@@ -22,7 +19,7 @@ def get_user_wallets(user_id):
 @jwt_required()
 @user_id_required
 def get_user_wallet_by_symbol(user_id, symbol):
-    wallet_asset = wallet_service.get_user_wallet_by_asset_symbol(user_id, symbol)
+    wallet_asset = wallet_svc.get_user_wallet_by_asset_symbol(user_id, symbol)
     if not wallet_asset:
         return jsonify({'message': 'Wallet not found'}), 404
 

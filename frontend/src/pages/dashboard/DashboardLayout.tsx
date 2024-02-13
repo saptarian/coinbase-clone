@@ -15,9 +15,9 @@ import MobileMenu from './components/MobileMenu'
 import { UserDataRequired } from '@/types'
 import { sidebarLinks } from '@/constants'
 import { useSessionTimeout } from '@/lib/hooks'
+import { fetchAvatar, isLoggedIn } from '@/lib/server'
 import { DashboardContext, DashboardContextType } from '@/lib/context'
 import { storeUser } from '@/lib/storage'
-import { fetchAvatar } from '@/lib/server'
 
 
 const TIME_IDLE = 1000 * 60 * 45 // 45 Minutes
@@ -31,10 +31,9 @@ const addtionalTitle = [
 export function DashboardLayout() 
 {
   const userData = useLoaderData() as UserDataRequired
-  const [avatar, setAvatar] = 
-    React.useState(userData.avatar)
+  const [avatar, setAvatar] = React.useState(userData.avatar)
   const {name: slug} = useParams<'name'>()
-  useSessionTimeout(TIME_IDLE)
+  const handleTimeout = useSessionTimeout(TIME_IDLE)
 
   const {pathname} = useLocation()
   const [from, setFrom] = React.useState('/trade')
@@ -46,9 +45,8 @@ export function DashboardLayout()
     pathname.startsWith(path))
 
   React.useEffect(() => {
-    if (!isAssetViewPage(pathname)) {
-      setFrom(pathname)
-    }
+    if (!isAssetViewPage(pathname)) setFrom(pathname)
+    if (!isLoggedIn()) handleTimeout()
   }, [pathname])
 
   const context: DashboardContextType = 
@@ -73,7 +71,6 @@ export function DashboardLayout()
       })
     }
   }, [])
-
 
   return (
     <DashboardContext.Provider value={context}>

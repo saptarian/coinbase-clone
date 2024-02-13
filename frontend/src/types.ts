@@ -154,6 +154,8 @@ export interface FormOrderType extends TransactionModel, OrderModel {
   total: number
   wallet_symbol: string
   asset_symbol: string
+  wallet_slug: string
+  asset_slug: string
 }
 
 type PickyAsset = Pick<AssetModel, 'is_fiat' | 'name' | 'slug' | 'symbol'>
@@ -346,6 +348,15 @@ export type SortableHeader = {
   width?: string
   sortable?: SortByOption
   handleSort?: (x: SortByOption) => void
+}
+
+
+export type NewsCard = {
+  url: string
+  title: string
+  description: string
+  thumbnail: string
+  createdAt: string
 }
 
 // export type BuySellProps = {

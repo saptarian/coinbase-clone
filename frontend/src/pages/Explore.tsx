@@ -4,6 +4,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import { 
   useCoins, 
   useNewCoins, 
+  useFiatRates,
   useSparkData,
   usePagination,
   useSearchInput,
@@ -17,6 +18,7 @@ import {
   DecimalDisplay, 
   StyledNumericDisplay, 
 } from '@/components/Numeric'
+import { NewsCard } from '@/components/LatestNews'
 import TableTemplate from '@/components/TableTemplate'
 import { SearchLoop } from '@/components/Icons'
 
@@ -66,6 +68,12 @@ export function Explore()
         <aside className="hidden lg:block lg:w-[380px] shrink-0">
           <NewCoins />
           {/*<ExploreAssets coins={coins} title='Trending'/>*/}
+          <div className="p-3">
+            <h2 className="font-medium text-xl px-4 py-2 mt-3 ">
+              Latest Crypto News
+            </h2>
+            <NewsCard />
+          </div>
         </aside>
         {/*<div className="md:hidden ">
           {[
@@ -88,15 +96,21 @@ const TableOptions = ({onSelCurrency, onSelRange}: {
   onSelCurrency: (e: React.ChangeEvent<HTMLSelectElement>) => void
   onSelRange: (e: React.ChangeEvent<HTMLSelectElement>) => void
 }) => {
+  const [rates,] = useFiatRates()
+
   return (
     <div className="space-x-2">
       <select name="currency" id="currency" 
         className="bg-slate-100 py-2 pl-4 pr-8
         rounded-full font-medium text-sm border-0"
+        defaultValue="USD"
         onChange={(onSelCurrency)}
       >
-        <option value="USD"> USD </option>
-        {/*<option value="IDR"> IDR </option>*/}
+        {rates ? Object.keys(rates).map(c => (
+          <option key={c} value={c}> {c} </option>
+        )) : 
+          <option value='USD'>USD</option>
+        }
       </select>
       <select name="range" id="range" 
         className="bg-slate-100 py-2 pl-4 pr-8
@@ -112,7 +126,7 @@ const TableOptions = ({onSelCurrency, onSelRange}: {
 
 
 const NewCoins = () => {
-  const {coins} = useNewCoins(7)
+  const {coins} = useNewCoins(3)
   // console.log('NewCoins.render')
 
   return (
@@ -169,7 +183,7 @@ const TableOptionsContext =
     range: 1, currency: 'USD'
   })
 const TableAssetWithSearchAndPagination = ({
-  tableLimitPerPage = 7, 
+  tableLimitPerPage = 20, 
   search = '',
   isSearching = false,
   totalAssets = 0
@@ -267,6 +281,7 @@ const AssetCollectionMemo = React.memo<{
           (coin) => <TableItemMobile 
             key={coin.slug} 
             coin={coin}
+            isLoading={isLoading}
           />
         ) : Array.from({length:7}).map((_,idx) => (
           <TableItemMobile key={idx}/>
@@ -293,6 +308,7 @@ const AssetCollectionMemo = React.memo<{
             <TableRowItem 
               key={coin.slug} 
               coin={coin} 
+              isLoading={isLoading}
             />
           ))}
             {isPending ? Array.from({length:3}).map((_,idx) => (
@@ -311,7 +327,8 @@ const TableRowItem = ({coin={}, isLoading}: {
 }) => 
 {
   const {range, currency} = React.useContext(TableOptionsContext)
-  const priceMultiplier = currency === 'IDR' ? 15000 : 1
+  const [rates,] = useFiatRates()
+  const priceMultiplier = rates?.[currency] ?? 1
 
   const changePercent = range === 1 ?
     coin.percent_change_24h : coin.percent_change_7d
@@ -345,7 +362,7 @@ const TableRowItem = ({coin={}, isLoading}: {
               price={coin.price * priceMultiplier} 
               currency={currency}
             />
-          ) : <Skeleton />}
+          ) : isLoading ? <Skeleton /> : '~'}
         </td>
         <td className="pl-3 pr-2 py-2.5">
           {coin.symbol ? (
@@ -362,7 +379,7 @@ const TableRowItem = ({coin={}, isLoading}: {
               valueWithSign={changePercent}>
               <DecimalDisplay value={changePercent} />
             </StyledNumericDisplay>
-          ) : <Skeleton />}
+          ) : isLoading ? <Skeleton /> : '~'}
         </td>
         <td className="px-1.5 py-2.5 text-center">
           {coin.market_cap ? (
@@ -370,7 +387,7 @@ const TableRowItem = ({coin={}, isLoading}: {
               price={coin.market_cap * priceMultiplier} 
               currency={currency}
             />
-          ) : <Skeleton />}
+          ) : isLoading ? <Skeleton /> : '~'}
         </td>
         <td className="pl-1.5 pr-5 py-2.5">
           {coin.slug ? (
@@ -400,16 +417,25 @@ const MiniSparkLine = ({symbol, height, range=1}: {
   if (isLoading)
     return <Skeleton height="2rem" />
 
-  return <SimpleChart height={height} data={spark ?? [0]} />
+  return <SimpleChart 
+    height={height} 
+    data={
+      spark && spark.length > 1 
+      ? spark 
+      : Array(2).fill(0)
+    } 
+  />
 }
 
 
-const TableItemMobile = ({coin={}}: {
+const TableItemMobile = ({coin={}, isLoading}: {
   coin?: Partial<CryptoListView>
+  isLoading?: boolean
 }) => 
 {
   const {range, currency} = React.useContext(TableOptionsContext)
-  const priceMultiplier = currency === 'IDR' ? 15000 : 1
+  const [rates,] = useFiatRates()
+  const priceMultiplier = rates?.[currency] ?? 1
 
   const changePercent = range === 1 ?
     coin.percent_change_24h : coin.percent_change_7d
@@ -458,8 +484,7 @@ const TableItemMobile = ({coin={}}: {
                 price={coin.price * priceMultiplier} 
                 currency={currency} 
               />
-            ) : 
-            <Skeleton width="6rem" />}
+            ) : isLoading ? <Skeleton width="6rem" /> : '~' }
           </p>
           <small>
             {changePercent ? (
@@ -470,8 +495,7 @@ const TableItemMobile = ({coin={}}: {
                   value={changePercent} 
                 />
               </StyledNumericDisplay>
-            ) :
-              <Skeleton width="3rem" />}
+            ) : isLoading ?  <Skeleton width="3rem" /> : '~'}
           </small>
         </div>
       </Link>

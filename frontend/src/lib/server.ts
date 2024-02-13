@@ -3,6 +3,7 @@ import { isTokenExpired } from './validation'
 import * as Store from './storage'
 import { api } from './api'
 import { AxiosResponse } from 'axios'
+import { queryClient } from './queries'
 
 
 export type PostBodyType = {[K in string]: string}
@@ -58,6 +59,11 @@ export async function signup(body: SignupValues) {
 }
 
 
+export function clearRss() {
+  queryClient.removeQueries({ queryKey: ['wallet'] })
+  queryClient.removeQueries({ queryKey: ['transaction'] })
+}
+
 export function clearAuth() {
   Store.storeUser(null)
   Store.storeAuth(null)
@@ -77,23 +83,31 @@ async function authRequired<T extends AxiosResponse>(func: () => Promise<T>) {
 
   return await func().catch(
   (err) => {
-    if (err.status === 401) clearAuth()
+    if (err.status === 401) {
+      clearRss()
+      clearAuth()
+    }
     throw err
   })
 }
 
 
 export async function signout() {
+  clearRss()
   if (!isLoggedIn) {
     Store.storeUser(null)
     return
   }
-  const err = await api.delete(
-    '/auth/signout'
-  ).catch(err => err)
-  clearAuth()
-  if (err) throw err
-  return
+  return await authRequired(() => api.delete('/auth/signout'))
+  .then(() => {
+    clearAuth()
+    return
+  })
+  .catch(err => {
+    clearAuth()
+    throw err
+  })
+
 }
 
 
@@ -345,4 +359,17 @@ export async function getFiat(symbol: string = '') {
       symbol ? '?symbol='+symbol : ''
     }`
   )
+}
+
+
+export async function getFiatRates(symbols?: string) {
+  return await api.get(`${CRYPTO_PATH}/fiat-rates${
+      symbols ? '?symbols='+symbols : ''
+    }`
+  )
+}
+
+
+export async function getLatestNews(limit: number = 5) {
+  return await api.get(`${CRYPTO_PATH}/latest-news/${limit}`)
 }

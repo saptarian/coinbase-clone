@@ -9,6 +9,7 @@ from .wallets import wallets_bp
 from .transactions import transactions_bp
 from .orderbook import orderbook_bp
 from .cryptocurrency import crypto_bp
+from .up import up_bp
 
 
 def register_routes(app: Flask) -> None:
@@ -23,3 +24,4 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(transactions_bp, url_prefix='/transaction')
     app.register_blueprint(orderbook_bp, url_prefix='/orderbook')
     app.register_blueprint(crypto_bp, url_prefix='/cryptocurrency')
+    app.register_blueprint(up_bp, url_prefix='/up')

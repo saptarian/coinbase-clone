@@ -1,8 +1,10 @@
-import { Link, LinkProps } from "react-router-dom"
+import React from 'react'
+import { Link, LinkProps, useLocation } from "react-router-dom"
 import CoinList from './CoinList'
-import Modal from '@/components/Modal'
+import Portal from '@/components/Portal'
 import BuySellPanel from './BuySellPanel'
 import { useDashboard } from '@/lib/context'
+import { useDebounce } from '@/lib/hooks'
 import SignoutButton from '@/components/SignoutButton'
 import SearchBox, { CoinSearcher } from '@/components/SearchBox'
 import { UserCircle, SearchLoop, ArrowLeft } from '@/components/Icons'
@@ -15,7 +17,13 @@ const Headbar: React.FC<{
     showGoBack: boolean
 }> = ({title, showSearch, showGoBack}) => 
 {
+  const [search, setSearch] = React.useState('')
+  const debouncedSearch = useDebounce(search)
+  const [show, setShow] = React.useState(false)
+  const location = useLocation()
   const { user, from, slug, identity, avatar } = useDashboard()
+
+  React.useEffect(() => {setShow(false)}, [location])
 
   return (
     <header className="bg-white sticky z-20 top-0 border-b">
@@ -38,18 +46,56 @@ const Headbar: React.FC<{
           ) : ''}
         </div>
         <div className="flex items-center gap-6">
-          <div className="max-md:hidden">
-            {showSearch ? (
-              <Modal className="w-[380px] bg-white shadow
-                rounded-sm mx-auto mt-12"
-                hideClose
-                trigger={({setOpen}) => (
+          {showSearch ? (
+            <div className="max-md:hidden relative w-[300px]">
+              <div className="relative w-full z-20 px-2">
+                <span className="absolute px-4 z-10 top-3">
+                  <SearchLoop className="w-3.5" />
+                </span>
+                <input type="search" 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onFocus={() => {setShow(true)}}
+                  // onBlur={() => {setShow(false)}}
+                  placeholder="Search for an asset" 
+                  className="pl-10 rounded-full pr-4 py-2 text-sm
+                  bg-stone-100/75 font-medium border-stone-400/75
+                  placeholder:text-stone-400 w-full h-[38px]" 
+                />
+              </div>
+              {show ? (<>
+                <div className="fixed inset-0"
+                  onClick={() => setShow(false)}
+                ></div>
+                <div className="absolute z-10 bg-white w-full
+                  h-[calc(100vh-80px)] shadow-2xl rounded-lg 
+                  -top-[4px] ring-1 ring-gray-200 ">
+                </div>
+                <div className="absolute z-10 w-full
+                  overflow-y-auto h-[calc(100vh-120px)]"
+                  onClick={(e) => {e.stopPropagation()}}
+                >
+                  <CoinSearcher 
+                    options={{search: debouncedSearch}}>
+                    {({coins, isLoading}) => (
+                      <CoinList 
+                        coins={coins} 
+                        isLoading={isLoading}
+                      />
+                    )}
+                  </CoinSearcher>
+                </div>
+              </>) : ''}
+              
+              {/*<Portal className="w-[380px] ml-auto 
+                mr-auto lg:mr-[250px] mt-[40px]"
+                ignoreFreeze trigger={({handleOpen}) => (
                   <div className="relative">
                     <span className="absolute px-4 z-10 top-3">
                       <SearchLoop className="w-3.5" />
                     </span>
                     <input type="text" 
-                      onFocus={() => setOpen(true)}
+                      onFocus={handleOpen}
                       placeholder="Search for an asset" 
                       className="pl-12 rounded-full pr-7 py-2 text-sm
                       bg-stone-100/75 font-medium border-stone-400/75
@@ -57,49 +103,46 @@ const Headbar: React.FC<{
                     />
                   </div>
                 )}>
-                {({open, setOpen}) => open ? (
-                  <SearchBox onClose={() => setOpen(false)}>
-                    {({search, onClose: setClose}) => (
-                      <CoinSearcher options={{search}}>
-                        {({coins, isLoading}) => (
-                          <div className="max-sm:h-full h-96"
-                            onClick={setClose}>
+                {({open, handleClose}) => open ? (
+                  <div className={`h-[calc(100vh-80px)]`}>
+                    <SearchBox onClose={handleClose}>
+                      {({search, onClose: setClose}) => (
+                        <CoinSearcher options={{search}}>
+                          {({coins, isLoading}) => (
                             <CoinList 
                               coins={coins} 
                               isLoading={isLoading}
                             />
-                          </div>
-                        )}
-                      </CoinSearcher>
-                    )}
-                  </SearchBox>
+                          )}
+                        </CoinSearcher>
+                      )}
+                    </SearchBox>
+                  </div>
                 ) : ''}
-              </Modal>
-            ) : ''}
-          </div>
-          <div className="max-md:hidden min-w-[8rem]">
-            <Modal className="w-[320px] bg-white shadow
-              rounded-sm mx-auto mt-12"
-              trigger={
+              </Portal>*/}
+            </div>
+          ) : ''}
+          <div className="max-sm:hidden min-w-[8rem]">
+            <Portal className="w-[320px] ml-auto mr-[100px] mt-12"
+              ignoreDark ignoreFreeze trigger={
                 <button className="primary-btn-sm w-full">
                   Buy & Sell
                 </button>
               }>
-              {({open, setOpen}) => open ? (
+              {({open, handleClose}) => open ? (
                 <BuySellPanel 
-                  onDone={() => setOpen(false)}
+                  onDone={handleClose}
                   assetSlug={slug}
                   isUserVerified={identity?.verified}
                 />
               ) : ''}
-            </Modal>
+            </Portal>
           </div>
           <div className="flex gap-2">
             {showSearch ? (
-              <Modal className="w-[380px] bg-white shadow
-                rounded-sm mx-auto mt-12"
-                hideClose
-                trigger={
+              <Portal className="sm:w-[380px] ml-auto 
+                mr-auto sm:mr-[40px] sm:mt-[40px] w-full"
+                ignoreDark ignoreFreeze trigger={
                   <button className="w-9 h-9 bg-stone-100/50 flex 
                     rounded-full items-center justify-center
                     hover:bg-stone-200 md:hidden">
@@ -108,28 +151,26 @@ const Headbar: React.FC<{
                     />
                   </button>
                 }>
-                {({open, setOpen}) => open ? (
-                  <SearchBox onClose={() => setOpen(false)}>
-                    {({search, onClose: setClose}) => (
-                      <CoinSearcher options={{search}}>
-                        {({coins, isLoading}) => (
-                          <div className="max-sm:h-full h-96"
-                            onClick={setClose}>
+                {({open, handleClose}) => open ? (
+                  <div className="sm:h-[calc(100vh-80px)] h-screen">
+                    <SearchBox onClose={handleClose}>
+                      {({search}) => (
+                        <CoinSearcher options={{search}}>
+                          {({coins, isLoading}) => (
                             <CoinList 
                               coins={coins} 
                               isLoading={isLoading}
                             />
-                          </div>
-                        )}
-                      </CoinSearcher>
-                    )}
-                  </SearchBox>
+                          )}
+                        </CoinSearcher>
+                      )}
+                    </SearchBox>
+                  </div>
                 ) : ''}
-              </Modal>
+              </Portal>
             ) : ''}
-            <Modal className="w-[320px] bg-white shadow
-              rounded-sm ml-auto mr-5 mt-12"
-              trigger={
+            <Portal className="w-[320px] ml-auto mr-5 mt-12"
+              ignoreDark ignoreFreeze trigger={
                 <button className="w-9 h-9 bg-stone-100/50 flex 
                   rounded-full items-center justify-center
                   hover:bg-stone-200 overflow-hidden">
@@ -143,12 +184,11 @@ const Headbar: React.FC<{
                   )}
                 </button>
               }>
-              {({setOpen}) => (
-                <UserMenu onClickLink={() => {
-                  setOpen(false)
-                }} user={user} avatar={avatar} />
+              {({handleClose}) => (
+                <UserMenu onClickLink={handleClose} 
+                  user={user} avatar={avatar} />
               )}
-            </Modal>
+            </Portal>
           </div>
           {/*<div className="hidden">
             <HamburgerIcon />
@@ -234,7 +274,6 @@ const UserMenu = ({user, onClickLink, avatar}: {
 }
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 // const HamburgerIcon = () => (
 //   <div className="w-7 h-7 bg-gray-200/75 rounded-full 
 //     ring-1 ring-gray-300 flex flex-col space-y-[3px]

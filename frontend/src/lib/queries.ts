@@ -1,5 +1,4 @@
 import toast from 'react-hot-toast'
-import { redirect } from 'react-router-dom'
 import { formatDecimal, formatCurrency } from './helper'
 import { QueryClient, QueryCache } from '@tanstack/react-query'
 import { 
@@ -8,6 +7,8 @@ import {
   getQuote,
   getMetadata,
   getSparkData,
+  getFiatRates,
+  getLatestNews,
   getListCrypto,
   fetchUserWallets, 
   getHistoricalData,
@@ -30,6 +31,7 @@ import {
   TransactionType,
   WalletOrNotFound,
   FetchedCryptoList,
+  NewsCard,
 } from '@/types'
 
 const A_MINUTE_IN_MS = 1000 * 60
@@ -52,11 +54,13 @@ export const queryClient = new QueryClient({
       if (query.state.data)
         queryClient.setQueryData(query.queryKey, query.state.data)
 
-      queryClient.invalidateQueries(query.queryKey)
-      await queryClient.cancelQueries({ queryKey: query.queryKey })
+      else {
+        queryClient.invalidateQueries(query.queryKey)
+        await queryClient.cancelQueries({ queryKey: query.queryKey })
+      }
 
-      if (query.state.data !== undefined && 'message' in error) {
-        toast(error.message, {id: 'query'})      
+      if (query.state.data !== undefined && error instanceof Error) {
+        toast(error.message, {id: 'query'})
       }
     }
   })
@@ -66,7 +70,8 @@ export const queryClient = new QueryClient({
 export const coinListQuery = (page: number = 1) => ({
   queryKey: ['coin', 'list', page],
   queryFn: (): Promise<FetchedCryptoList> => 
-    getListCrypto({page: page.toString()}).then((resp) => resp.data),
+    getListCrypto({page: page.toString()})
+    .then((resp) => resp.data)
 })
 
 
@@ -74,6 +79,7 @@ export const coinListSearchQuery = (search: string) => ({
   queryKey: ['coin', 'list', 'search', search],
   queryFn: (): Promise<FetchedCryptoList> => 
     getListCrypto({search}).then((resp) => resp.data),
+  staleTime: A_DAY_IN_MS
 })
 
 
@@ -83,7 +89,7 @@ export const coinMapSlugBundleQuery = (page: number = 1) => ({
     getIdMap({page: page.toString(), bundle: 'slug'}).then(
       (resp) => resp.data
     ),
-  staleTime: A_DAY_IN_MS,
+  staleTime: A_DAY_IN_MS
 })
 
 
@@ -166,10 +172,25 @@ export const historicalDataQuery = (symbol: string, years: number = 4) =>
 ({
   queryKey: ['historical', symbol],
   queryFn: (): Promise<HistoricalData> => 
-    getHistoricalData(symbol, years).then(
-      (resp) => resp.data
-    ),
+    getHistoricalData(symbol, years).then((resp) => resp.data),
   staleTime: A_DAY_IN_MS,
+})
+
+
+export const latestNewsQuery = (limit: number = 5) =>
+({
+  queryKey: ['news', 'latest'],
+  queryFn: (): Promise<Array<NewsCard>> => 
+    getLatestNews(limit).then((resp) => resp.data),
+  staleTime: A_DAY_IN_MS,
+})
+
+
+export const fiatRatesQuery = () =>
+({
+  queryKey: ['fiat', 'rates'],
+  queryFn: (): Promise<{[x: string]: number}> => 
+    getFiatRates().then((resp) => resp.data),
 })
 
 
@@ -177,7 +198,8 @@ export const sparkDataQuery = (symbol: string) =>
 ({
   queryKey: ['spark', symbol],
   queryFn: async (): Promise<SparkData> => {
-    const data = await getSparkData(symbol).then((d) => d.data)
+    const data = await getSparkData(symbol)
+    .then((d) => d.data)
     if (data && data.close && data.close.length) {
       const dataSliced = []
       const numSkipped = 36
@@ -546,9 +568,7 @@ function injectStats<T extends CryptoList>(
 }
 
 
-const logoPlaceholder = 
-  import.meta.env.LOGO_PLACEHOLDER ?? 'https://placehold.co/64x64/gold/FFF?text=$'
-const LOGO_BASE_URL = 
-  import.meta.env.LOGO_BASE_URL ?? 'http://127.0.0.1:8081/cmc_logo'
+const logoPlaceholder = 'https://placehold.co/64x64/gold/FFF?text=$'
+const LOGO_BASE_URL = import.meta.env.VITE_LOGO_BASE_URL ?? 'http://localhost:8081/cmc_logo'
 
 export const getLogoById = (id: number) => `${LOGO_BASE_URL}/${id}.png`

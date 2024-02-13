@@ -28,11 +28,11 @@ class OrderBook(db.Model):
     ):
         self.user_id = user_id
         self.asset_id = asset_id
-        self.order_type = order_type
+        self.order_type = order_type[:20]
         self.amount = amount
         self.wallet_id = wallet_id
         self.price = price
-        self.status = status
+        self.status = status[:20]
         self.timestamp = datetime.utcnow()
         self.uuid = uuid
 

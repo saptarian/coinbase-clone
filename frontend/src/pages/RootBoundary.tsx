@@ -6,7 +6,7 @@ import {NotFound} from './NotFound'
 const RootBoundary: React.FC = () => 
 {
   const error = useRouteError()
-  console.error(error)
+  console.warn('Catch by RootBoundary', error)
   let message = "Something went wrong"
   let subMsg = "Perhaps you'd like to get help from Coinbase Support."
 
@@ -16,7 +16,7 @@ const RootBoundary: React.FC = () =>
       subMsg = "We're looking into it right now. Plese try again later. Your funds are safe."
     }
 
-    else if (error.status === 404)
+    else if (error.status == 404)
       return <NotFound />
 
   return (
@@ -34,8 +34,8 @@ const RootBoundary: React.FC = () =>
       <p className="pb-5 px-5">
         {subMsg}
       </p>
-      <Link to="/" className="primary-btn block mx-auto w-fit">
-        Go to homepage
+      <Link to="." relative="path" className="primary-btn block mx-auto w-fit">
+        Reload
       </Link>
     </main>
   )

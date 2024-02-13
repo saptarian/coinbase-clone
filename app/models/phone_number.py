@@ -13,6 +13,8 @@ class PhoneNumber(db.Model, Base):
 
 
     def __init__(self, user_id, number, is_primary=False):
+        if len(number) > 20:
+            raise ValueError('Phone number to long')
         self.user_id = user_id
         self.number = number
         self.is_primary = is_primary

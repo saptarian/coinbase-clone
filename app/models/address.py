@@ -8,10 +8,10 @@ class Address(db.Model, Base):
 
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     street = db.Column(db.String(50))
-    unit = db.Column(db.String(50))
+    unit = db.Column(db.String(20))
     city = db.Column(db.String(20))
     postal_code = db.Column(db.Integer)
-    country = db.Column(db.String(10))
+    country = db.Column(db.String(20))
     user = relationship("User")
 
     def __repr__(self):
@@ -19,11 +19,11 @@ class Address(db.Model, Base):
 
     def __init__(self, user_id, street, unit, city, postal_code, country):
         self.user_id = user_id
-        self.street = street
-        self.unit = unit
-        self.city = city
+        self.street = str(street or '')[:50]
+        self.unit = str(unit or '')[:20]
+        self.city = str(city or '')[:20]
         self.postal_code = postal_code
-        self.country = country
+        self.country = str(country or '')[:20]
 
     def to_dict(self):
         return {

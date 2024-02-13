@@ -5,7 +5,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom"
 
 import { signin, isLoggedIn, validateIdentity, signup } from '@/lib/server'
 import { isValidEmail } from '@/lib/validation'
-import { queryClient } from '@/lib/queries'
 import { SignupValues } from '@/types'
 import {NotFound} from '@/pages/NotFound'
 
@@ -101,10 +100,6 @@ async function actionSignin({ request }: LoaderFunctionArgs) {
   })
   
   if (!ok) return typeof func === 'function' ? func() : {ok}
-
-  queryClient.invalidateQueries({ queryKey: ['transaction'] })
-  queryClient.removeQueries({ queryKey: ['wallet', 'list'] })
-  queryClient.invalidateQueries({ queryKey: ['wallet'] })
 
   const redirectTo = formData.get("redirectTo") as string | null
   return redirect(redirectTo || "/home")

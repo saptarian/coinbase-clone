@@ -1,4 +1,3 @@
-import React from 'react'
 import { WalletBalanceInfo } from './WalletBalanceInfo'
 import { FormOrderType, WalletOrNotFound } from '@/types'
 import { FormOrderContext } from './BuySellPanel'
@@ -60,7 +59,12 @@ export const OrderPreview = ({ context, onCancel }: {
       {previewList.map((item, idx) => 
         <PreviewItem key={idx} {...item}/>
       )}
-      <input type="hidden" name="uuid" value={order.uuid} />
+      <input type="hidden" name="uuid" 
+        value={order.uuid} readOnly />
+      <input type="hidden" name="wallet_slug" 
+        value={wallet.asset_slug} readOnly />
+      <input type="hidden" name="asset_slug" 
+        value={asset.asset_slug ?? asset.cmc_asset_slug} readOnly />
       <div className="py-2">
         <Button type="submit" 
           isLoading={isSubmiting}>

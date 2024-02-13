@@ -1,32 +1,27 @@
-import os
+from os import path, makedirs
 from http import HTTPStatus
-
-from flask import Blueprint, jsonify, request, abort, \
+from flask import Blueprint, jsonify, request, \
     send_from_directory, current_app
-    
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 
-from app.decorators import user_id_required
-from app.services.user_service import UserService
-
-
+from app.utils.decorators import user_id_required
+from app.services import user_svc
 users_bp = Blueprint('user', __name__)
-user_service = UserService()
 
 
 @users_bp.route("/", methods=['GET'])
 @jwt_required()
 @user_id_required
 def get_user(user_id):
-    return jsonify(user_service.get_user_by_id(user_id).to_dict())
+    return jsonify(user_svc.get_user_by_id(user_id).to_dict())
 
 
 @users_bp.route("/profile", methods=['GET'])
 @jwt_required()
 @user_id_required
 def get_profile(user_id):
-    user_profile = user_service.get_profile(user_id)
+    user_profile = user_svc.get_profile(user_id)
     if not user_profile:
         return jsonify(
             message='Profile was not created yet'
@@ -34,11 +29,14 @@ def get_profile(user_id):
 
     identity, address, preference, phone_numbers = user_profile
     return jsonify({
-        'user': user_service.get_user_by_id(user_id).to_dict(),
+        'user': user_svc.get_user_by_id(user_id).to_dict(),
         'identity': identity.to_dict(),
         'address': address.to_dict(),
         'preference': preference.to_dict(),
-        'phone_numbers': list(number.to_dict(reveal=True) for number in phone_numbers),
+        'phone_numbers': list(
+            number.to_dict(reveal=True) for number \
+            in sorted(phone_numbers, key=lambda x: int(not x.is_primary))
+        ),
     })
 
 
@@ -46,7 +44,7 @@ def get_profile(user_id):
 @jwt_required()
 @user_id_required
 def get_phones(user_id):
-    phone_numbers = user_service.get_list_of_phone_numbers(user_id)
+    phone_numbers = user_svc.get_list_of_phone_numbers(user_id)
     if not phone_numbers or not len(phone_numbers):
         return jsonify(
             message='Something went wrong'
@@ -61,15 +59,25 @@ def get_phones(user_id):
 @jwt_required()
 @user_id_required
 def create_identity(user_id):
-    identity_id = user_service.get_identity_id(user_id)
+    identity_id = user_svc.get_identity_id(user_id)
     if identity_id is not None:
-        return jsonify(
-            message='Cannot create new identity'
-        ), HTTPStatus.NOT_ACCEPTABLE
+        return jsonify(message='Cannot create new identity'), 400
 
-    body = request.get_json()
-    user_service.create_profile(user_id, body)
+    payload = request.get_json()
+    payload_required = ['identity', 'address', 'analytic']
+    for k in payload_required:
+        if k not in payload:
+            return jsonify(message='Missing some payload'), 400
 
+    if not payload['identity'].get('date_of_birth'):
+        return jsonify(message='Missing date of birth'), 400
+
+    address_required = ['street', 'city', 'postal_code', 'country']
+    for k in address_required:
+        if k not in payload['address']:
+            return jsonify(message='Missing address field'), 400
+
+    user_svc.create_profile(user_id, payload)
     return '', HTTPStatus.CREATED
 
 
@@ -77,15 +85,16 @@ def create_identity(user_id):
 @jwt_required()
 @user_id_required
 def create_phone(user_id):
-    phone = user_service.get_primary_phone(user_id)
+    phone = user_svc.get_primary_phone(user_id)
     if phone:
-        return jsonify(
-            message='Cannot create new phone'
-        ), HTTPStatus.NOT_ACCEPTABLE    
+        return jsonify(message='Cannot create new phone'), 400
 
     body = request.get_json()
-    user_service.create_phone_number(user_id, body)
+    if not body.get('phone_number') \
+    or len(body.get('phone_number').strip(' ')) <= 6:
+        return jsonify(message='Invalid phone number'), 400
 
+    user_svc.create_phone_number(user_id, body)
     return '', HTTPStatus.CREATED
 
 
@@ -94,16 +103,10 @@ def create_phone(user_id):
 @user_id_required
 def update_email(user_id):
     body = request.get_json()
-    email = body.get('email')
+    if not body.get('email'): 
+        return jsonify(message='Missing required field'), 400
 
-    if not email:
-        return jsonify(
-            message='Cannot update email'
-        ), HTTPStatus.NOT_ACCEPTABLE    
-
-    user_service.update_user(user_id, { 
-        'email': email 
-    })
+    user_svc.update_user(user_id, {'email': body['email']})
     return '', HTTPStatus.CREATED
 
 
@@ -112,18 +115,13 @@ def update_email(user_id):
 @user_id_required
 def update_user(user_id):
     body = request.get_json()
+    # currently only accept display name only instead real identity
+    #   which is required some document validation checking
     display_name = body.get('display_name')
-    values = {}
-
     if not display_name:
-        return jsonify(
-            message='Cannot update user'
-        ), HTTPStatus.NOT_ACCEPTABLE    
+        return jsonify(message='Missing required field'), 400
 
-    if display_name:
-        values['display_name'] = display_name
-
-    user_service.update_user(user_id, values)
+    user_svc.update_user(user_id, {'display_name': display_name})
     return '', HTTPStatus.CREATED
 
 
@@ -133,14 +131,11 @@ def update_user(user_id):
 def add_phone(user_id):
     body = request.get_json()
     number = body.get('number')
+    if not number or number \
+    in user_svc.get_all_user_phone_number(user_id):
+        return jsonify(message='Cannot add this phone number'), 400
 
-    if not number or number in user_service.\
-            get_all_user_phone_number(user_id):
-        return jsonify(
-            message='Cannot add new phone number'
-        ), HTTPStatus.NOT_ACCEPTABLE
-
-    user_service.add_phone_number(user_id, number)
+    user_svc.add_phone_number(user_id, number)
     return '', HTTPStatus.CREATED
 
 
@@ -150,24 +145,12 @@ def add_phone(user_id):
 def set_primary_phone(user_id):
     body = request.get_json()
     number = body.get('number')
+    if not number or number not \
+    in user_svc.get_all_user_phone_number(user_id):
+        return jsonify(message='Invalid phone number'), 400
 
-    list_numbers = user_service.\
-        get_all_user_phone_number(user_id)
-    print('set_primary_phone', number, list_numbers)
-
-    if not number or number not in list_numbers:
-        return jsonify(
-            message='Cannot do that'
-        ), HTTPStatus.NOT_ACCEPTABLE
-
-    user_service.update_primary_number(user_id, number)
+    user_svc.update_primary_number(user_id, number)
     return '', HTTPStatus.CREATED
-
-
-# @users_bp.route("/debug", methods=['GET'])
-# def debug_phone():
-#     user_service.remove_phone_number(8, '123123123')
-#     return '', HTTPStatus.NO_CONTENT
 
 
 @users_bp.route("/phone", methods=['POST'])
@@ -176,14 +159,11 @@ def set_primary_phone(user_id):
 def delete_phone(user_id):
     body = request.get_json()
     number = body.get('number')
+    if not number or number not \
+    in user_svc.get_all_user_phone_number(user_id):
+        return jsonify(message='Invalid phone number'), 400
 
-    if not number or number not in user_service.\
-            get_all_user_phone_number(user_id):
-        return jsonify(
-            message='Cannot delete phone number'
-        ), HTTPStatus.NOT_ACCEPTABLE
-
-    user_service.remove_phone_number(user_id, number)
+    user_svc.remove_phone_number(user_id, number)
     return '', HTTPStatus.NO_CONTENT
 
 
@@ -193,25 +173,20 @@ def delete_phone(user_id):
 def update_avatar(user_id):
     avatar = request.files['avatar']
     filename = secure_filename(avatar.filename)
+    if filename == '':
+        return jsonify(message='Invalid file name'), 400
 
-    if filename != '':
-        file_ext = os.path.splitext(filename)[1]
-        if file_ext not in ['.jpg', '.png']:
-            abort(400)
+    file_ext = path.splitext(filename)[1]
+    if file_ext not in current_app.config['UPLOAD_EXTENSIONS']:
+        return jsonify(message='Invalid file type'), 400
 
-        save_dir = os.path.join(
-            current_app.config['UPLOAD_PATH'], 
-            get_jwt_identity()
-        )
-
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-
-        avatar.save(os.path.join(save_dir, 'avatar.png'))
-        user_service.update_user(user_id, {
-            'photo_url': '/user/avatar'
-        })
-
+    save_dir = path.join(
+        current_app.config['UPLOAD_PATH'], 
+        get_jwt_identity()
+    )
+    if not path.exists(save_dir): makedirs(save_dir)
+    avatar.save(path.join(save_dir, 'avatar.png'))
+    user_svc.update_user(user_id, {'photo_url': '/user/avatar'})
     return '', HTTPStatus.CREATED
 
 
@@ -220,7 +195,7 @@ def update_avatar(user_id):
 def get_avatar():
     try:
         return send_from_directory(
-            os.path.join(
+            path.join(
                 current_app.config['UPLOAD_PATH'], 
                 get_jwt_identity()
             ),
@@ -235,22 +210,15 @@ def get_avatar():
 @user_id_required
 def update_password(user_id):
     body = request.get_json()
-    password = body.get('password')
-    new_password = body.get('new_password')
+    if not body.get('password') \
+    or not body.get('new_password'):
+        return jsonify(message='Missing required field'), 400
 
-    if not password or not new_password:
-        return jsonify(
-            message='Cannot update password'
-        ), HTTPStatus.NOT_ACCEPTABLE    
-
-    user = user_service.update_password(user_id, password, new_password)
-
-    if not user:
-        return jsonify(
-            message='Invalid password'
-        ), HTTPStatus.NOT_ACCEPTABLE 
-
-    return '', HTTPStatus.CREATED
+    user = user_svc.update_password(
+        user_id, body['password'], body['new_password']
+    )
+    if user: return '', HTTPStatus.CREATED
+    return jsonify(message='Wrong Old password'), 400
 
 
 @users_bp.route('/update/date_of_birth', methods=['POST'])
@@ -258,13 +226,10 @@ def update_password(user_id):
 @user_id_required
 def update_date_of_birth(user_id):
     body = request.get_json()
+    if not body.get('date_of_birth'):
+        return jsonify(message='Missing required field'), 400
 
-    if 'date_of_birth' not in body:
-        return jsonify(
-            message='Cannot update identity'
-        ), HTTPStatus.NOT_ACCEPTABLE    
-
-    user_service.update_date_of_birth(user_id, body['date_of_birth'])
+    user_svc.update_date_of_birth(user_id, body['date_of_birth'])
     return '', HTTPStatus.CREATED
     
 
@@ -273,17 +238,14 @@ def update_date_of_birth(user_id):
 @user_id_required
 def update_address(user_id):
     address = request.get_json()
+    if not address.get('street') \
+    or not address.get('unit') \
+    or not address.get('city') \
+    or not address.get('postal_code') \
+    or not address.get('country'):
+        return jsonify(message="Missing some field"), 400
 
-    if 'street' not in address or \
-       'unit' not in address or \
-       'city' not in address or \
-       'postal_code' not in address or \
-       'country' not in address:
-        return jsonify(
-            message='Cannot update address'
-        ), HTTPStatus.NOT_ACCEPTABLE    
-
-    user_service.update_address(user_id, address)
+    user_svc.update_address(user_id, address)
     return '', HTTPStatus.CREATED
 
 
@@ -292,7 +254,7 @@ def update_address(user_id):
 @user_id_required
 def get_phone(user_id):
     return jsonify(
-        user_service.get_primary_phone(
+        user_svc.get_primary_phone(
             user_id).to_dict(reveal=True
         )
     )

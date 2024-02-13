@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom"
 import { MenuIconedItem, mobileMenuLinks } from '@/constants'
 import { useDashboard } from "@/lib/context"
 import BuySellPanel from './BuySellPanel'
-import Modal from '@/components/Modal'
+import Portal from '@/components/Portal'
 import React from "react"
 
 
@@ -28,26 +28,27 @@ const MobileMenu: React.FC<{
           ))}
         </div>
       </div>
-
-      {showTradeButton ? (
-        <Modal className="w-[320px] bg-white shadow
-          rounded-sm mx-auto mt-16"
-          trigger={(
+      <div className="sm:hidden">
+        {showTradeButton ? (
+          <Portal isPortal 
+            className="mx-auto h-screen"
+            showClose trigger={(
             <div className="p-3 w-full">
               <button className="primary-btn w-full">
                 Buy & Sell
               </button>
             </div>
-          )}>
-          {({open, setOpen}) => open ? (
-            <BuySellPanel 
-              onDone={() => setOpen(false)}
-              assetSlug={slug}
-              isUserVerified={identity?.verified}
-            />
-          ) : ''}
-        </Modal>
-      ) : ''}
+            )}>
+            {({open, handleClose}) => open ? (
+              <BuySellPanel 
+                onDone={handleClose}
+                assetSlug={slug}
+                isUserVerified={identity?.verified}
+              />
+            ) : ''}
+          </Portal>
+        ) : ''}
+      </div>
     </menu>
   )
 }

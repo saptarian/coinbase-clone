@@ -12,21 +12,17 @@ import { PhoneNumber } from '@/types'
 
 export function Security() {
   const {phones} = useOutletContext<DashboardContextType>()
+  const primaryNumber = React.useMemo(() => {
+    if (!phones) return '~'
+    const primary = phones.length === 1 
+    ? phones[0] 
+    : phones.find(({is_primary}) => is_primary)
+    return primary?.number
+    ? `+xx xxx xxxx xx${primary.number.slice(-2)}`
+    : '~'
+  }, [phones])
 
-  let phone
-  let phoneNumber
-
-  if (phones?.length === 1)
-    phone = phones[0]
-
-  else if (phones?.length > 1) 
-    phone = phones.find(({is_primary}) => is_primary)
-
-  if (phone?.number)
-    phoneNumber = `+xx xxx xxxx xx${phone.number.slice(-2)}`
-
-  // console.log('Security.render', phone)
-
+  // console.log('Security.render', primaryNumber)
 
   return (
     <div className="px-5 py-12 space-y-6 mx-auto max-w-screen-md">
@@ -112,7 +108,7 @@ export function Security() {
             </span>
             <span className="">
               <h5 className="font-medium">
-                {phoneNumber}
+                {primaryNumber}
               </h5>
               <p className="text-gray-600 text-sm">
                 Keep your primary phone number up-to-date
@@ -162,7 +158,7 @@ export function Security() {
                   Text message
                 </h5>
                 <p className="text-gray-600 text-sm">
-                  Phone number {phoneNumber}
+                  Phone number {primaryNumber}
                 </p>
               </span>
             </div>
@@ -373,7 +369,7 @@ const ManagePhoneNumbersModal = ({onExit, phones}: {
               </p>
               {is_primary ? (
                 <p className="text-green-600 font-bold text-sm">
-                  Required
+                  Primary
                 </p>
               ) : ''}
             </div>

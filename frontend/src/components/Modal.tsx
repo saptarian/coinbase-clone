@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Close } from '@/components/Icons'
 
 
 type ModalNode = React.ReactNode | (
@@ -42,14 +43,9 @@ const Modal: React.FC<Partial<ModalProps>> = ({
     setOpen(true)
   }
 
-
   useEffect(() => {
-    if (toggle === true)
-      handleOpen()
-
-    else if (toggle === false)
-      handleClose()
-
+    if (toggle === true) handleOpen()
+    else if (toggle === false) handleClose()
   }, [toggle])
 
 
@@ -76,13 +72,8 @@ const Modal: React.FC<Partial<ModalProps>> = ({
             {!hideClose ? (
               <div className="sm:hidden w-full bg-white p-2 
                 text-right pt-14 border-b">
-                <button 
-                  onClick={handleClose}
-                  className="px-2 py-4"
-                ><div className="bg-stone-500 w-6 h-[3px] 
-                  rounded-md rotate-45 translate-y-[3px]"></div>
-                  <div className="bg-stone-500 w-6 h-[3px] 
-                  rounded-md -rotate-45"></div>
+                <button onClick={handleClose} className="p-2">
+                  <Close className="text-gray-500 hover:text-stone-400 w-5"/>
                 </button>
               </div>
             ) : ''}

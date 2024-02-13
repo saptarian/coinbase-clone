@@ -34,7 +34,7 @@ class WalletService(AssetService):
         ).filter(Wallet.user_id==user_id)
           
         results = db.session.execute(stmt)
-        print(stmt)
+        # print(stmt)
 
         rows = []
         for row in results: 
@@ -75,4 +75,3 @@ class WalletService(AssetService):
         db.session.add(data)
         db.session.commit()
 
-    # Add more wallet-related services (update, transaction history, etc.) as needed

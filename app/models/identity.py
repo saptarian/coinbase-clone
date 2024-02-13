@@ -10,7 +10,7 @@ class Identity(db.Model, Base):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     verified = db.Column(db.Boolean, default=False)
     date_of_birth = db.Column(db.DateTime, nullable=False)
-    document_type = db.Column(db.String(50))
+    document_type = db.Column(db.String(30))
     document_url = db.Column(db.String(150))
     user = relationship("User")
 
@@ -24,8 +24,10 @@ class Identity(db.Model, Base):
         self.date_of_birth = dt(int(y), int(m), int(d))
 
     def update_document(self, document_type: str, document_url: str):
+        if len(document_url) > 150:
+            raise ValueError('Max URI length is 150')
         self.verified = False
-        self.document_type = document_type
+        self.document_type = document_type[:30]
         self.document_url = document_url
 
     def to_dict(self):

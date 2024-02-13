@@ -70,7 +70,7 @@ const BuySellPanel: React.FC<BuySellPanelProps> = ({
   React.useEffect(() => {
     if (order.done) setPanelIndex(9)
     else if (order.uuid) setPanelIndex(5)
-    else if (!ok) setPanelIndex(0)
+    else if (!ok && panelIndex > 1) setPanelIndex(0)
   }, [order.done, order.uuid, ok])
 
 
@@ -164,7 +164,6 @@ const TabPanel = ({
 }
 
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 // const LoadingPanel = () => {
 //   return (
 //     <div className="px-5 py-3 space-y-3">

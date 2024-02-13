@@ -73,7 +73,7 @@ export const CoinSearcher: React.FC<CoinSearcherProps> = (
 {
   const {coins, isLoading} = useCoins(options)
 
-  if (children === undefined)
+  if (!children)
     return (
       <pre>
         {isLoading ? 'Loading...' : 

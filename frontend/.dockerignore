@@ -1,0 +1,9 @@
+.git/
+node_modules/
+dist/
+src/app/
+
+.dockerignore
+.env*
+!.env.example
+docker-compose.override.yml

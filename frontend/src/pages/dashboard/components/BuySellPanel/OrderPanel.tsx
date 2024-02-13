@@ -104,6 +104,16 @@ export const OrderPanel = ({
   return (
     <Form method="post" action='/preview'
       className="px-5 py-3 space-y-3">
+      <input type="hidden" 
+        name="asset_slug"
+        defaultValue={asset?.asset_slug ?? asset?.cmc_asset_slug} 
+        readOnly
+      />
+      <input type="hidden" 
+        name="wallet_slug"
+        defaultValue={wallet?.asset_slug} 
+        readOnly
+      />
       <OrderInputWrapper 
         amount={amount} 
         currencySign={sign}>
@@ -311,7 +321,7 @@ const SellFormOptions = ({onSellAll, name}: {
   name: string
 }) => (
   <>
-    <input type="hidden" name={name} value="sell" />
+    <input type="hidden" name={name} value="sell" readOnly />
     <ul className="flex gap-3">
       <li className="secondary-btn p-2 w-full"
         onClick={onSellAll}
@@ -381,7 +391,7 @@ const OrderFormItem: React.FC<OrderFormItemType> = ({
           truncate w-24 text-left">{asset.name || <Skeleton />}
         </span>
         {asset.symbol ? (
-          <input type="hidden" name={name} value={asset.symbol} />
+          <input type="hidden" name={name} value={asset.symbol} readOnly />
         ) : ''}
       </div>
       <AngleRight className="w-2 h-2 text-gray-800" />

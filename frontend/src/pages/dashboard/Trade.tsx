@@ -2,7 +2,14 @@ import React from 'react'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 
-import { useCoins, useIntersectionObserver, usePagination, useSearchInput, useSearchProcessing, useSortAssets } from '@/lib/hooks'
+import { 
+  useCoins, 
+  useSortAssets,
+  usePagination, 
+  useSearchInput, 
+  useSearchProcessing, 
+  useIntersectionObserver, 
+} from '@/lib/hooks'
 import { PriceDisplay, DecimalDisplay, StyledNumericDisplay } from '@/components/Numeric'
 import { CryptoListView, SortableHeader } from '@/types'
 import { DashboardContextType } from '@/lib/context'

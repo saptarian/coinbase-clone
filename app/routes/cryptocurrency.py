@@ -3,40 +3,34 @@ from flask_jwt_extended import jwt_required
 from requests.exceptions import ConnectionError, \
     Timeout, TooManyRedirects, RequestException
 
-from app import tasks
+from app.services import crypto_svc
 from app.utils.helpers import is_digit
-
+from app.utils.decorators import catch_custom_exceptions
 crypto_bp = Blueprint('cryptocurrency', __name__)
 
 
-def running_task(task):
-    try:
-        data = task.get(timeout=45)
-        return jsonify(data) if data else \
-            (jsonify(message= 'Not found'), 404)
-    except (RequestException, ConnectionError, 
-            TooManyRedirects) as e:
-        print(f'Error running task: {e}')
-        return jsonify({
-            'message': f'Error running task: {e}'
-        }), 500
-    except Timeout:
-        return jsonify({
-            'message': f'Request timeout'
-        }), 408
-
-
 validation_rules = {
-    'symbol': {'type': 'text', 'min_len': 2, 'tail_func': lambda s: s.upper() },
-    'search': {'type': 'text', 'min_len': 3, 'tail_func': lambda s: s.lower() },
+    'symbol': {'type': 'text', 'min_len': 2,
+        'tail_func': lambda s: s.upper() 
+    },
+    'symbols': {'type': 'text', 'min_len': 3,
+        'tail_func': lambda s: s.strip(' ,').upper() 
+    },
+    'search': {'type': 'text', 'min_len': 3,
+        'tail_func': lambda s: s.lower() 
+    },
     'slug': {'type': 'text', 'min_len': 2 },
-    'ids': {'type': 'text', 'min_len': 1, 'tail_func': lambda s: s.strip(' ,') },
+    'ids': {'type': 'text', 'min_len': 1,
+        'tail_func': lambda s: s.strip(' ,') 
+    },
     'page': {'type': 'number', 'min': 1 },
     'id': {'type': 'number', 'min': 1 },
-    'bundle': {'type': 'text', 'accepts': ['symbol', 'slug', 'id'] },
+    'bundle': {'type': 'text',
+        'accepts': ['symbol', 'slug', 'id'] 
+    },
 }
 
-def params_cleaner(key_list, **kwargs) -> dict:
+def params_validator(key_list, **kwargs) -> dict:
     cleaned = {}
     for key in key_list:
         rules = validation_rules[key]
@@ -68,215 +62,168 @@ def params_cleaner(key_list, **kwargs) -> dict:
     return cleaned
 
 
-def get_metadata_or_quotes(task_func, **kwargs):
-    params = params_cleaner(
+@crypto_bp.route('/metadata', methods=['GET'])
+@catch_custom_exceptions
+@jwt_required()
+def get_metadata():
+    params = params_validator(
         ['symbol', 'page', 'id', 'slug', 'ids'], 
-        **{'page': 1, **kwargs}
+        **{'page': 1, **request.args}
     )
     if len([v for v in params.values() if v is not None]) == 0:
         return jsonify(message= 'Invalid Parameters'), 400
 
-    # print('get_metadata_or_quotes', params)
-    return running_task(
-        task_func.apply_async(
-            kwargs= params
-        )
-    )
+    ids = params.get('ids')
+    if ids:
+        params['ids'] = [i for i in ids.split(',') if i and is_digit(i)]
 
-@crypto_bp.route('/metadata', methods=['GET'])
-@jwt_required()
-def get_metadata():
-    return get_metadata_or_quotes(
-        tasks.ensure_metadata, 
-        **request.args
-    )
+    return jsonify(crypto_svc.metadata.ensure(**params))
 
 
 @crypto_bp.route('/quotes', methods=['GET'])
+@catch_custom_exceptions
 # @jwt_required()
 def get_quotes():
-    return get_metadata_or_quotes(
-        tasks.ensure_quotes, 
-        **request.args
+    params = params_validator(
+        ['symbol', 'page', 'id', 'slug', 'ids'], 
+        **{'page': 1, **request.args}
     )
+    if len([v for v in params.values() if v is not None]) == 0:
+        return jsonify(message= 'Invalid Parameters'), 400
+
+    ids = params.get('ids')
+    if ids:
+        params['ids'] = [i for i in ids.split(',') if i and is_digit(i)]
+
+    return jsonify(crypto_svc.quotes.ensure(**params))
 
 
 @crypto_bp.route('/list-crypto', methods=['GET'])
+@catch_custom_exceptions
 # @jwt_required()
 def get_list_crypto():
-    kwargs = params_cleaner(
-        ['page', 'search'], 
-        **{'page': 1, **request.args}
+    kwargs = params_validator(
+        ['page', 'search'], **{'page': 1, **request.args}
     )
-    # print('get_list_crypto {}{}'.format(kwargs, request.args))
-    if kwargs.get('search'):
-        task = tasks.search_entire_id_map_list_by_keyword.apply_async(
-            args= (kwargs['search'],)
-        )
-        try:
-            data = task.get(timeout=60*2)
-            return jsonify(
-                status= {'total_count': len(data)},
-                data= list(data.values())
-            )
-        except (RequestException, ConnectionError, 
-                TooManyRedirects) as e:
-            print(f'Error searching list crypto: {e}')
-            return jsonify({
-                'message': f'Error searching list crypto: {e}'
-            }), 500
-        except Timeout:
-            return jsonify({
-                'message': f'Request timeout'
-            }), 408
+    search = kwargs.get('search')
+    if search:
+        data = crypto_svc.search.find(search)
+        if not data: raise ValueError(f'Error search: {search}')
+        return jsonify(data)
 
     if len([v for v in kwargs.values() if v is not None]) == 0:
         return jsonify(message= 'Invalid Parameters'), 400
 
-    cached_data = tasks.load_from_cache(
-        tasks.get_cache_key('list_crypto', kwargs['page'])
-    )
-    return jsonify(cached_data) if cached_data else running_task(
-        tasks.store_list_crypto.apply_async(
-            kwargs= kwargs
-        )
-    )
+    return jsonify(crypto_svc.list_crypto.ensure(kwargs['page']))
 
 
 @crypto_bp.route('/quote', methods=['GET'])
+@catch_custom_exceptions
 @jwt_required()
 def get_crypto():
-    kwargs = params_cleaner(
-        ['symbol', 'id', 'slug'], 
-        **request.args
+    kwargs = params_validator(
+        ['symbol', 'id', 'slug'], **request.args
     )
     if len([v for v in kwargs.values() if v is not None]) == 0:
         return jsonify(message= 'Invalid Parameters'), 400
 
-    # print('get_crypto', kwargs)
-    quotes_task = tasks.ensure_quotes.apply_async(
-        kwargs= kwargs
-    )
-    metadata_task = tasks.ensure_metadata.apply_async(
-        kwargs= kwargs
-    )
     quotes = {}
+    quotes = crypto_svc.quotes.ensure(**kwargs)
     metadata = {}
-    try:
-        quotes = quotes_task.get(timeout=45)
-        metadata = metadata_task.get(timeout=45)
-        if not quotes and not metadata:
-            return jsonify(message= 'Not found'), 404 
+    metadata = crypto_svc.metadata.ensure(**kwargs)
+    if not quotes and not metadata:
+        return jsonify(message= 'Not found'), 404 
 
-        if type(quotes) is type({}) \
-        and type(metadata) is type({}):
-            return jsonify({**quotes, **metadata})
-        else:
-            return jsonify(quotes) if quotes else jsonify(metadata)
-
-    except (RequestException, ConnectionError, 
-            TooManyRedirects, ValueError, 
-            KeyError, IndexError) as e:
-        print(f'Error get_crypto: {e}')
-        return jsonify({
-            'message': f'Error running or processing tasks: {e}'
-        }), 500
-    except Timeout:
-        return jsonify({
-            'message': f'Request timeout'
-        }), 408
+    if type(quotes) is dict and type(metadata) is dict:
+        return jsonify({**quotes, **metadata})
+    else:
+        return jsonify(quotes) if quotes else jsonify(metadata)
 
 
 @crypto_bp.route('/global-statistic', methods=['GET'])
+@catch_custom_exceptions
 # @jwt_required()
 def get_global_statistic():
-    cached_data = tasks.load_from_cache(
-        tasks.get_cache_key('global_statistic')
-    )
-    return jsonify(cached_data) if cached_data else running_task(
-        tasks.store_global_statistic.apply_async()
-    )
+    return jsonify(crypto_svc.global_statistic.ensure())
 
 
 @crypto_bp.route('/historical-data/<string:symbol>', methods=['GET'])
-# @jwt_required()
+@catch_custom_exceptions
+@jwt_required()
 def get_historical_data(symbol):
     years = 4 if not is_digit(request.args.get('years')) else \
         int(request.args.get('years'))
     symbol = symbol.upper() if symbol and \
         len(symbol.split('-')) == 2 else None
-
     if not symbol: 
         return jsonify(message= 'Invalid Parameters'), 400 
-
-    cached_data = tasks.load_from_cache(
-        tasks.get_cache_key('historical_data', symbol)
-    )
-    return jsonify(cached_data) if cached_data else running_task(
-        tasks.store_historial_data.apply_async(
-        kwargs={'symbol': symbol, 'years': years}
+    return jsonify(crypto_svc.historical_data.ensure(
+        symbol= symbol, 
+        years= years
     ))
 
 
 @crypto_bp.route('/spark-data/<string:symbol>', methods=['GET'])
+@catch_custom_exceptions
 # @jwt_required()
 def get_spark_data(symbol):
     symbol = symbol.upper() if symbol and \
-        len(symbol.split('-')) == 2 else None
-
+        len(symbol.split('-')) > 1 else None
     if not symbol: 
         return jsonify(message= 'Invalid Parameters'), 400 
-
-    cached_data = tasks.load_from_cache(
-        tasks.get_cache_key('spark_data', symbol)
-    )
-    return jsonify(cached_data) if cached_data \
-        else running_task(
-            tasks.store_spark_data.apply_async(
-            kwargs={'symbol': symbol}
-        )
-    )
+    return jsonify(crypto_svc.spark_data.ensure(symbol=symbol))
 
 
 @crypto_bp.route('/fiat', methods=['GET'])
+@catch_custom_exceptions
 # @jwt_required()
 def get_fiat():
-    symbol = request.args.get('symbol').upper() if \
-        request.args.get('symbol') and \
-        len(request.args.get('symbol').strip(' ')) == 3 \
-        else None
+    symbol = request.args.get('symbol')
+    if symbol and len(symbol.strip(' ')) == 3: 
+        symbol = symbol.upper()
+    return jsonify(crypto_svc.fiat_map.ensure(symbol=symbol))
 
-    # print('/fiat', symbol)
-    return running_task(
-        tasks.ensure_fiat_map.apply_async(
-            kwargs={'symbol': symbol}
+
+@crypto_bp.route('/latest-news/<int:n>', methods=['GET'])
+@catch_custom_exceptions
+# @jwt_required()
+def get_latest_news(n):
+    return jsonify(
+        crypto_svc.latest_news.get_latest(
+            None if n <= 0 else n
         )
     )
 
 
+@crypto_bp.route('/fiat-rates', methods=['GET'])
+@catch_custom_exceptions
+# @jwt_required()
+def get_fiat_rates():
+    params = params_validator(['symbols'], **request.args)
+    symbols = params.get('symbols')
+    if symbols:
+        symbols = symbols.split(',')
+        if len(symbols) == 1:
+            symbols = symbols[0]
+    return jsonify(crypto_svc.fiat_rates.ensure(symbols))
+
+
 @crypto_bp.route('/id-map', methods=['GET'])
+@catch_custom_exceptions
 # @jwt_required()
 def get_id_map():
-    kwargs = params_cleaner(
+    kwargs = params_validator(
         ['symbol', 'page', 'id', 'slug', 'bundle'], 
         **{'page': 1, **request.args}
     )
     if len([v for v in kwargs.values() if v is not None]) == 0:
         return jsonify(message= 'Invalid Parameters'), 400
 
-    # print('get_id_map', kwargs)
     if kwargs.get('bundle') and kwargs.get('page'):
-        return running_task(
-            tasks.get_bundle_id_map.apply_async(
-                args= (
-                    kwargs.get('bundle'), 
-                    kwargs.get('page')
-            ))
-        ) 
+        return jsonify(crypto_svc.cmc_id_map.get_bundle(
+            kwargs.get('bundle'),
+            kwargs.get('page')
+        )) 
 
-    return running_task(
-        tasks.ensure_cmc_id_map.apply_async(
-            kwargs= kwargs
-        )
-    )
+    return jsonify(crypto_svc.cmc_id_map.ensure(**kwargs))
     

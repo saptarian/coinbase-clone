@@ -5,15 +5,15 @@ class Asset(db.Model, Base):
     __tablename__ = "assets"
 
     name = db.Column(db.String(100), nullable=False)
-    symbol = db.Column(db.String(10), nullable=False, unique=True)
+    symbol = db.Column(db.String(50), nullable=False, unique=True)
     slug = db.Column(db.String(100), nullable=False, unique=True)
     is_fiat = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=False)
 
     def __init__(self, name, symbol, is_fiat, slug, is_active = True):
-        self.name = name
-        self.slug = slug
-        self.symbol = symbol
+        self.name = name[:100]
+        self.slug = slug[:100]
+        self.symbol = symbol[:50]
         self.is_active = is_active
         self.is_fiat = is_fiat
 

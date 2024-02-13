@@ -10,25 +10,20 @@ from sqlalchemy import and_
 from .wallet_service import WalletService
 
 
-
 class UserService(WalletService):
     def get_user_by_id(self, user_id: int):
         return User.query.get(user_id)
 
 
     def create_user(self, body: dict):
-        if not self.is_user_exist(body.get('email')):
-            new_user = User(
-                body.get('first_name'),
-                body.get('last_name'),
-                body.get('email')
-            )
-            new_user.password = body.get('password')
-            self.save_changes(new_user)
-            return new_user
-
-        else:
-            return None
+        new_user = User(
+            body['first_name'],
+            body['last_name'],
+            body['email']
+        )
+        new_user.password = body['password']
+        self.save_changes(new_user)
+        return new_user
 
 
     def get_identity_id(self, user_id: int):
@@ -66,43 +61,43 @@ class UserService(WalletService):
 
         result = list(res[0] for res in result)
 
-        print('get_all_user_phone_number', result)
+        # print('get_all_user_phone_number', result)
         return result
 
 
     def create_profile(self, user_id: int, body: dict):
-        identity = body.get('identity')
+        identity = body['identity']
         if not identity:
             return
 
         self.create_identity(user_id, identity)
         self.create_preference(user_id)
 
-        address = body.get('address')
+        address = body['address']
         if address:
             self.create_address(user_id, address)
 
-        analytic = body.get('analytic')
+        analytic = body['analytic']
         if analytic:
             self.create_analytic(user_id, analytic)
 
         asset = self.get_asset_by_symbol(symbol='USD')
         if not asset:
-            raise Exception('No asset found', 404)
+            raise Exception('Critical error: NO USD FOUND!')
 
         self.create_demo_wallet(user_id, asset.id)
 
 
     def create_identity(self, user_id: int, identity: dict):
         new_identity = Identity(user_id,
-            identity.get('date_of_birth', '')
+            identity['date_of_birth']
         )
         self.save_changes(new_identity)
 
 
     def create_phone_number(self, user_id: int, data: dict):
         new_phone_number = PhoneNumber(user_id,
-            data.get('phone_number'), is_primary=True
+            data['phone_number'], is_primary=True
         )
         self.save_changes(new_phone_number)
 
@@ -131,11 +126,11 @@ class UserService(WalletService):
 
     def create_address(self, user_id: int, address: dict):
         new_address = Address(user_id, 
-            address.get('street', ''), 
-            address.get('unit', ''), 
-            address.get('city', ''), 
-            address.get('postal_code', ''), 
-            address.get('country', '')
+            address['street'],
+            address.get('unit', ''),
+            address['city'],
+            address['postal_code'],
+            address['country']
         )
         self.save_changes(new_address)
 
@@ -147,9 +142,9 @@ class UserService(WalletService):
 
     def create_analytic(self, user_id: int, analytic: dict):
         new_analytic = Analytic(user_id, 
-            analytic.get('employment_status', ''), 
-            analytic.get('source_of_funds', ''), 
-            analytic.get('use_app_for', ''), 
+            analytic.get('employment_status', ''),
+            analytic.get('source_of_funds', ''),
+            analytic.get('use_app_for', ''),
             analytic.get('work_in_industry', '')
         )
         self.save_changes(new_analytic)
@@ -160,7 +155,7 @@ class UserService(WalletService):
             filter(Identity.user_id == user_id).\
             first() is not None 
 
-        print('is_profile_created', result)
+        # print('is_profile_created', result)
         return result
 
 
@@ -169,7 +164,7 @@ class UserService(WalletService):
 
 
     def get_user_by_email(self, email: str):
-        return User.query.filter_by(email=email).first()
+        return User.query.filter_by(email=email).scalar()
 
 
     def is_user_exist(self, email: str) -> bool:
@@ -177,7 +172,7 @@ class UserService(WalletService):
             filter(User.email == email).\
             first() is not None 
 
-        print('is_user_exist', result)
+        # print('is_user_exist', result)
         return result
 
 
@@ -199,7 +194,7 @@ class UserService(WalletService):
             update(values, synchronize_session=False)
 
         db.session.commit()
-        print('update_user', result, user_id, values)
+        # print('update_user', result, user_id, values)
         return result
 
 
@@ -208,7 +203,7 @@ class UserService(WalletService):
         if user and user.check_password(password):
             user.password = new_password
             db.session.commit()
-            print('update_password', user)
+            # print('update_password', user)
             return user
 
         # wrong current password
@@ -223,7 +218,7 @@ class UserService(WalletService):
 
         identity.set_date_of_birth(date_of_birth)
         db.session.commit()
-        print('update_date_of_birth', identity)
+        # print('update_date_of_birth', identity)
         return identity
 
 
@@ -233,7 +228,7 @@ class UserService(WalletService):
             update(address, synchronize_session=False)
 
         db.session.commit()
-        print('update_address', result, user_id, address)
+        # print('update_address', result, user_id, address)
         return result
 
 
