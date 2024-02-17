@@ -87,39 +87,6 @@ const Headbar: React.FC<{
                 </div>
               </>) : ''}
               
-              {/*<Portal className="w-[380px] ml-auto 
-                mr-auto lg:mr-[250px] mt-[40px]"
-                ignoreFreeze trigger={({handleOpen}) => (
-                  <div className="relative">
-                    <span className="absolute px-4 z-10 top-3">
-                      <SearchLoop className="w-3.5" />
-                    </span>
-                    <input type="text" 
-                      onFocus={handleOpen}
-                      placeholder="Search for an asset" 
-                      className="pl-12 rounded-full pr-7 py-2 text-sm
-                      bg-stone-100/75 font-medium border-stone-400/75
-                      placeholder:text-stone-400" 
-                    />
-                  </div>
-                )}>
-                {({open, handleClose}) => open ? (
-                  <div className={`h-[calc(100vh-80px)]`}>
-                    <SearchBox onClose={handleClose}>
-                      {({search, onClose: setClose}) => (
-                        <CoinSearcher options={{search}}>
-                          {({coins, isLoading}) => (
-                            <CoinList 
-                              coins={coins} 
-                              isLoading={isLoading}
-                            />
-                          )}
-                        </CoinSearcher>
-                      )}
-                    </SearchBox>
-                  </div>
-                ) : ''}
-              </Portal>*/}
             </div>
           ) : ''}
           <div className="max-sm:hidden min-w-[8rem]">

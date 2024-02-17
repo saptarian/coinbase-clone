@@ -25,11 +25,11 @@ def create_app() -> Flask:
     rds.init_app(app)
     api_ext.init_app(app)
 
-    # cors.init_app(app)
+    cors.init_app(app)
     # Allow requests only from a specific frontend domain
-    cors.init_app(app, resources={
-        r"/*": { "origins": app.config.get('FRONTEND_BASE_URL') }
-    })
+    # cors.init_app(app, resources={
+    #     r"/*": { "origins": app.config.get('FRONTEND_BASE_URL') }
+    # })
 
     # Callback function to check if a JWT exists in the database blocklist
     @jwt.token_in_blocklist_loader

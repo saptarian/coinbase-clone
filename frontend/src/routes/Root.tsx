@@ -1,17 +1,18 @@
-import Header from '@/components/Header'
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom"
 import { Outlet, redirect } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom"
 
+import Header from '@/components/Header'
+import Footer from '@/components/Footer'
 import { signin, isLoggedIn, validateIdentity, signup } from '@/lib/server'
 import { isValidEmail } from '@/lib/validation'
 import { SignupValues } from '@/types'
-import {NotFound} from '@/pages/NotFound'
+import { NotFound } from '@/pages/NotFound'
 
 
 export const RootRoutes = [
   { 
-    element: ( <> <Header /> <Outlet /> </> ),
+    element: ( <> <Header /> <Outlet /> <Footer /> </> ),
     children: [
       { 
         index: true, 

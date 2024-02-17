@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { isLoggedIn } from '@/lib/server'
-import logo from '@/assets/logo-coinbase.svg'
+import logo from '@/assets/logo.svg'
 import Nav from './Nav'
 
 const DASHBOARD_ONLY = true
@@ -12,9 +12,9 @@ function Header() {
 	return (
     <header className="border-b sticky top-0 bg-white z-20">
       <div className="flex items-center gap-6 mx-auto h-16
-       justify-between px-5 lg:px-10 lg:max-w-screen-2xl ">
+       justify-between px-5 lg:px-10 lg:max-w-screen-xl ">
         <Link to="/" >
-          <img src={logo} alt="logo" width="100"/>
+          <img src={logo} alt="logo" width="150"/>
         </Link>
         <div className="gap-12 flex items-center min-w-[110px]">
           {DASHBOARD_ONLY ? '' : <Nav />}

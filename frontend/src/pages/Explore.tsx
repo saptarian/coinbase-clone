@@ -33,7 +33,7 @@ export function Explore()
 
 
   return (
-    <main className="max-w-screen-2xl mx-auto ring-1 
+    <main className="max-w-screen-xl mx-auto ring-1 
       ring-slate-200 pt-4 divide-y">
       <section className="flex flex-col gap-1 px-5 mb-1
         md:max-w-xl md:items-center mx-auto md:py-12">
@@ -293,7 +293,7 @@ const AssetCollectionMemo = React.memo<{
       <div className="max-md:hidden overflow-x-hidden">
         <TableTemplate
           className="first:pl-5 last:pr-5 text-center 
-          first:text-left [&:nth-child(2)]:text-right"
+          first:text-left [&:nth-child(2)]:text-right py-3"
           headers={headers}
           divider={false}
         >

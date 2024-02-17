@@ -91,7 +91,7 @@ export const DashboardRoutes = {
         { 
           path: "price/:name", 
           async loader({params}: LoaderFunctionArgs) {
-            console.log('AssetDetail.loader', params.name)
+            // console.log('AssetDetail.loader', params.name)
             if (!await isFiat(params.name ?? ''))
               return {ok:true}
 

@@ -11,16 +11,13 @@ import { WalletType } from '@/types'
 
 
 const myCashHeaders = [
-  { id: 'name', label: 'Name' },
-  { id: 'balance', label: 'Total balance', width: '16rem' },
-  { id: '_', label: '', width: '2rem' },
+  { id: 'name', label: 'Name', width: '60%' },
+  { id: 'balance', label: 'Total balance' },
 ]
 
-
 const myCryptoHeaders = [
-  { id: 'name', label: 'Name' },
-  { id: 'balance', label: 'Crypto Balance', width: '16rem' },
-  { id: '_', label: '', width: '2rem' },
+  { id: 'name', label: 'Name', width: '60%' },
+  { id: 'balance', label: 'Crypto Balance' },
 ]
 
 
@@ -58,9 +55,9 @@ export function MyAssets()
         cryptoWallets: cryptoWallets.length
       })
     }
-    console.log('walletList.memo', {
-      fiatBalance, wallets, cryptoWallets
-    })
+    // console.log('walletList.memo', {
+    //   fiatBalance, wallets, cryptoWallets
+    // })
     return {fiatBalance, wallets, cryptoWallets}
   }, [walletList])
 
@@ -75,6 +72,8 @@ export function MyAssets()
     // console.log('cryptoPrices.memo', {balance})
     return balance
   }, [cryptoPrices])
+
+  // console.log('MyAssets.render', cryptoBalance)
 
 
   return (
@@ -97,7 +96,7 @@ export function MyAssets()
               <NoCryptoWallet />
             ) : (
               <TableTemplate
-                className="first:pl-5 last:pr-5 py-3"
+                className="first:pl-5 py-3"
                 headers={myCashHeaders}>
                 {isLoading ? Array.from({
                   length: length.wallets
@@ -123,7 +122,8 @@ export function MyAssets()
             max-md:border-y">
             <div className="px-5 py-3 border-b">
               {isLoading || (!cryptoBalance && cryptoWallets.length) ? 
-                <Skeleton width="4rem" count={2} />
+                <Skeleton width="4rem" count={2} 
+                  enableAnimation={isLoading} />
               :
                 <CashInfo 
                   value={cryptoBalance}
@@ -135,7 +135,7 @@ export function MyAssets()
               <NoCryptoWallet />
             ) : (
               <TableTemplate
-                className="first:pl-5 last:pr-5 py-3"
+                className="first:pl-5 py-3"
                 headers={myCryptoHeaders}>
                 {isLoading ? Array.from({
                   length: length.cryptoWallets
@@ -242,12 +242,13 @@ const CryptoWalletItem: React.FC<CryptoWalletItemProps> = ({
   // )
 
   React.useEffect(() => {
-    if (cryptoPrices)
+    if (cryptoPrices) {
       setCryptoPrices((currentObj) => 
         ({...currentObj, [slug]: cryptoPrices * balance})
       )
-    // console.log('CryptoWalletItem.effect')
-  }, [balance, slug, currency])
+      // console.log('CryptoWalletItem.effect', data)
+    }
+  }, [balance, slug, currency, cryptoPrices])
 
 
   return (
@@ -308,8 +309,6 @@ const MyCryptoBodyTable = ({wallet={}}: {
           ) : ''}
         </p>
       </td>
-      <td className="pr-5 text-center">
-      </td>
     </tr>
   )
 }
@@ -344,8 +343,6 @@ const MyCashBodyTable = ({wallet={}}: {
             <PriceDisplay price={ wallet.balance } />
           ) : ''}
         </p>
-      </td>
-      <td className="pr-5 text-center">
       </td>
     </tr>
   )

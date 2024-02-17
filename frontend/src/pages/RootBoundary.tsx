@@ -1,5 +1,5 @@
 import { Link, useRouteError, isRouteErrorResponse } from 'react-router-dom'
-import assetImg from '@/assets/connection-issue.png'
+import assetImg from '@/assets/connection-issue.jpg'
 import {NotFound} from './NotFound'
 
 
@@ -25,8 +25,17 @@ const RootBoundary: React.FC = () =>
       <span className="my-6">
         <img src={assetImg} 
           alt="connection issues" 
-          className="mx-auto" 
+          className="mx-auto h-[calc(100vh-350px)]" 
         />
+        <small className="text-xs text-center 
+          text-gray-500">
+          Image by <a href={"https://www.freepik.com/free-vector"
+          + "/hand-drawn-no-data-illustration_49639852.htm#"
+          + "query=connection%20issue&position=44&from_view=search"
+          + "&track=ais&uuid=523a92a4-b18b-4bb5-a6c3-2e42a94bacb5"}
+          target="_blank"
+          >Freepik</a>
+        </small>
       </span>
       <h2 className="font-medium text-2xl py-3 px-12">
         {message}

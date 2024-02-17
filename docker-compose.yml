@@ -12,13 +12,16 @@ x-app: &default-app
     postgres:
       condition: "service_started"
       required: false
+    consul:
+      condition: "service_started"
+      required: false
   env_file:
     - ".env"
   restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
   stop_grace_period: "3s"
   tty: true
   volumes:
-    - "${DOCKER_WEB_VOLUME:-mediafiles:/app/app/uploads}"
+    - "${DOCKER_BACKEND_VOLUME:-mediafiles:/app/app/uploads}"
 
 services:
   nginx:
@@ -30,11 +33,10 @@ services:
     build: 
       context: "."
       target: "nginx"
-      # context: "frontend/" # use this to run frontend on the same host
     ports:
-      - "80:80"
+      - "${DOCKER_WEB_PORT_FORWARD:-0.0.0.0:80}:80"
     depends_on:
-      - "web"
+      - "backend"
     profiles: ["nginx"]
     restart: "${DOCKER_RESTART_POLICY:-unless-stopped}"
     stop_grace_period: "3s"
@@ -69,22 +71,27 @@ services:
     volumes:
       - "redis:/data"
 
-  web:
+  backend:
     <<: *default-app
     deploy:
       resources:
         limits:
-          cpus: "${DOCKER_WEB_CPUS:-0}"
-          memory: "${DOCKER_WEB_MEMORY:-0}"
-    healthcheck:
-      test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up/}"
-      interval: "30m"
-      timeout: "3s"
-      start_period: "5s"
-      retries: 3
-    ports:
-      - "${DOCKER_WEB_PORT_FORWARD:-127.0.0.1:8000}:8000"
-    profiles: ["web"]
+          cpus: "${DOCKER_BACKEND_CPUS:-0}"
+          memory: "${DOCKER_BACKEND_MEMORY:-0}"
+    profiles: ["backend"]
+    command: "envconsul -consul-addr consul:8500 -upcase -sanitize -prefix flask-app gunicorn -c python:app.gunicorn wsgi:app"
+
+  consul:
+    deploy:
+      resources:
+        limits:
+          cpus: "${DOCKER_CONSUL_CPUS:-0}"
+          memory: "${DOCKER_CONSUL_MEMORY:-0}"
+    profiles: ["consul"]
+    image: "hashicorp/consul:1.17.3"
+    command: "consul agent -dev -client 0.0.0.0"
+    # ports:
+    #   - "8500:8500"
 
 volumes:
   postgres: {}

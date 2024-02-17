@@ -23,6 +23,15 @@ COPY --chown=python:python requirements.txt ./
 
 RUN pip3 install --no-warn-script-location --user -r requirements.txt
 
+ARG version=0.7.3
+
+RUN curl -so envconsul.tgz \
+    https://releases.hashicorp.com/envconsul/${version}/envconsul_${version}_linux_amd64.tgz \
+    && tar -xvzf envconsul.tgz \
+    && chown python:python ./envconsul \
+    && chmod +x ./envconsul \
+    && mv envconsul /home/python/.local/bin/envconsul
+
 ENV PYTHONPATH="." \
     PATH="${PATH}:/home/python/.local/bin" \
     USER="python"
@@ -31,12 +40,11 @@ COPY --chown=python:python . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "-c", "python:app.gunicorn", "wsgi:app"]
-
 #####################################################
 
 FROM nginx:1.25.3-alpine AS nginx
 LABEL maintainer="Sapta Rianza <saptaqur@gmail.com>"
 
 RUN rm /etc/nginx/conf.d/default.conf
+
 COPY nginx.conf /etc/nginx/conf.d

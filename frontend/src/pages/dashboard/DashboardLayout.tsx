@@ -79,7 +79,7 @@ export function DashboardLayout()
         <Sidebar navItems={sidebarLinks} />
         <MobileMenu showTradeButton={isAssetViewPage(pathname)}/>
         <div className="md:bg-slate-100 min-h-screen md:grow 
-          flex flex-col overflow-x-hidden">
+          flex flex-col">
           {/*<ModalContent />*/}
           <Headbar 
             showGoBack={isAssetViewPage(pathname)}

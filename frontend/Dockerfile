@@ -24,7 +24,7 @@ RUN npm install
 ARG NODE_ENV="production"
 ENV NODE_ENV="${NODE_ENV}" \
     PATH="${PATH}:/node_modules/.bin" \
-    VITE_API_BACKEND_SERVER="http://localhost:8000" \
+    VITE_API_BACKEND_SERVER="http://localhost" \
     VITE_LOGO_BASE_URL="https://s2.coinmarketcap.com/static/img/coins/64x64" \
     USER="node"
 
@@ -34,9 +34,10 @@ RUN npm run build --omit=dev
 
 FROM nginx:1.25.3-alpine
 
-WORKDIR /var/www/html
+WORKDIR /usr/share/nginx/html
 
 RUN rm /etc/nginx/conf.d/default.conf
+
 COPY nginx.conf /etc/nginx/conf.d
 
 COPY --from=assets /app/frontend/dist/ .

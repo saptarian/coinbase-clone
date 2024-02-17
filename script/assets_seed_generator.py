@@ -13,7 +13,7 @@ def loop_and_write(file, data, is_fiat):
 
 
 def main():
-    url = 'http://localhost:8000/cryptocurrency'
+    url = 'http://localhost/cryptocurrency'
 
     with open('assets_seed.sql', 'w', encoding='utf-8') as ff:
         ff.write("INSERT INTO \"assets\"\n")

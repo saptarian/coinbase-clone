@@ -35,8 +35,8 @@ function rebuild {
 }
 
 function cmd {
-  # Run any command you want in the web container
-  _dc web "${@}"
+  # Run any command you want in the backend container
+  _dc backend "${@}"
 }
 
 function flask {
@@ -45,7 +45,7 @@ function flask {
 }
 
 function shell {
-  # Start a shell session in the web container
+  # Start a shell session in the backend container
   cmd bash "${@}"
 }
 
@@ -75,6 +75,14 @@ function sql {
   docker compose exec -T postgres psql -U "coinbase" -d "coinbase" -c "${@}"
 }
 
+function stats {
+  docker compose stats
+}
+
+function logs {
+  docker compose logs -f
+}
+
 function redis-cli {
   # Connect to Redis
   _dc redis redis-cli "${@}"
@@ -90,6 +98,28 @@ function clean {
   rm -rf .pytest_cache/ .coverage celerybeat-schedule
 
   touch public/.keep
+}
+
+APP="${TARGET_APP:-flask-app}"
+
+function putenv {
+  docker compose exec -it consul consul kv put "${APP}"/"${@}"
+}
+
+function getenv {
+  docker compose exec -it consul consul kv get -recurse "${APP}"
+}
+
+function fe:build {
+  docker build -t frontend:latest ./frontend
+}
+
+function fe:run {
+  docker run -itd --rm --name frontend -p 8080:8080 frontend:latest
+}
+
+function fe:stop {
+  docker stop frontend
 }
 
 function help {

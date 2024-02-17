@@ -177,9 +177,9 @@ const SearchInput = ({onDoneTyping}: {
 
 const tableCoinHeaders: Array<SortableHeader> = [
   { id: 'name', label: 'Name', width: '40%' },
-  { id: 'price', label: 'Price', sortable: 'price', width: '6rem' },
-  { id: 'change', label: 'Change', sortable: 'change', width: '4.5rem' },
-  { id: 'market-cap', label: 'Market cap', sortable: 'market-cap', width: '6rem' },
+  { id: 'price', label: 'Price', sortable: 'price', width: '6em' },
+  { id: 'change', label: 'Change', sortable: 'change', width: '4em' },
+  { id: 'market-cap', label: 'Market cap', sortable: 'market-cap', width: '6em' },
   { id: 'buy', label: '', width: '4.5rem' },
 ]
 
@@ -218,7 +218,7 @@ const TableMemo = React.memo(function Table({
   return (
     <TableTemplate
       className="first:pl-3 first:md:pl-5 last:pr-3 last:md:pr-5
-      last:max-md:hidden [&:nth-child(4)]:max-md:text-right"
+      last:max-md:hidden [&:nth-child(4)]:max-md:text-right py-3"
       headers={headersWithHandleSort}>
       {isSorting || !coins ?
         Array.from({length:7}).map((_,idx) => (

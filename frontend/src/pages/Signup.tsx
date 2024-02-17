@@ -5,8 +5,8 @@ import { isValidEmail, isValidPassword, isEveryInputOK } from '@/lib/validation'
 import Button from '@/components/Button'
 import FormInput from '@/components/FormInput'
 import { signupFormWithPattern } from '@/constants'
-import signupImg from '@/assets/bitcoinAndOtherCrypto-0.svg'
-import logo from '@/assets/logo-coinbase.svg'
+import signupImg from '@/assets/coin-hand.jpg'
+import logo from '@/assets/logo.svg'
 
 
 const initial = {
@@ -36,7 +36,7 @@ export function Signup() {
     <>
       <header className="flex items-center py-6 px-4 justify-between">
         <Link to="/">
-          <img src={logo} alt="logo" width="100" />
+          <img src={logo} alt="logo" width="150" />
         </Link>
         <div>
           <Link to="/signin"
@@ -105,8 +105,8 @@ export function Signup() {
             </Form>
           </div>
         </section>
-        <section className="flex lg:block absolute lg:w-1/3 
-          lg:space-y-10 top-16 lg:relative lg:top-0 lg:items-center">
+        <section className="flex lg:block absolute lg:w-1/3 space-x-4
+          lg:space-y-5 top-16 lg:relative lg:top-0 lg:items-center">
           <article>
             <h2 className="text-sm mb-4 font-medium 
               lg:font-normal lg:text-[2.5rem]/10 lg:text-center">
@@ -121,6 +121,13 @@ export function Signup() {
             <img src={signupImg} 
               className="max-h-24 w-full lg:max-h-48"
             />
+            <small className="text-xs text-center text-gray-500 hidden lg:block">
+              Image by <a href={"https://www.freepik.com/free-vector/flower"
+              + "-made-money_788304.htm#query=coin%20and%20hand&position=40"
+              + "&from_view=search&track=ais&uuid=2a5ce3dc-96b2-4616-a161-52c8692047c2"}
+              target="_blank"
+            >Freepik</a>
+            </small>
           </div>
         </section>
       </main>

@@ -15,7 +15,7 @@ import 'react-loading-skeleton/dist/skeleton.css'
 
 
 const persister = createSyncStoragePersister({
-  storage: window.localStorage,
+  storage: window.sessionStorage,
 })
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

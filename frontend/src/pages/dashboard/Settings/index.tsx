@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useOutletContext } from "react-router-dom"
-import logo from '@/assets/logo-coinbase.svg'
+import logo from '@/assets/logo.svg'
 
 
 export function Settings() {

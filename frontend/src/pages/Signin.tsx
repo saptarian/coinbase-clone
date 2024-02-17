@@ -1,6 +1,6 @@
 import { Link, Form, useLocation, useNavigation } from "react-router-dom"
 import Button from '@/components/Button'
-import logo from '@/assets/logo-coinbase.svg'
+import logo from '@/assets/logo.svg'
 
 
 export function Signin() {
@@ -17,7 +17,7 @@ export function Signin() {
       mx-auto sm:p-10 sm:mt-8 p-6">
       <div>
         <Link to="/" className="inline-block sm:mb-8 mb-3">
-          <img src={logo} alt="logo" width="120"/>
+          <img src={logo} alt="logo" width="170"/>
         </Link>
       </div>
       <h1 className="text-2xl">

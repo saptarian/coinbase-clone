@@ -24,8 +24,7 @@ function TableTemplate({
 	return (
 		<>
 			{title ? (
-				<h2 className={`font-medium text-lg py-4 border-b ${className ?? ''
-					}`}>
+				<h2 className="font-medium text-lg py-4 border-b">
 					{title}
 				</h2>
 			) : ''}
@@ -35,8 +34,8 @@ function TableTemplate({
 						{headers.map((header) => (
 							<th key={header.id}
 								title={header.label}
-								className={`last:text-center py-3 ${
-									className ?? 'first:pl-3 last:pr-3'
+								className={`${
+									className ?? 'first:pl-3 last:pr-3 py-3 last:text-center'
 									} ${
 									header.handleSort ? "cursor-pointer" : ""
 									} pr-1.5`}

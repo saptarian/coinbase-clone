@@ -1,4 +1,4 @@
-import logo from '@/assets/logo-coinbase.svg'
+import logo from '@/assets/logo.svg'
 
 
 function Nav() {
@@ -6,7 +6,7 @@ function Nav() {
     <header className="flex items-center py-6 px-4 
       justify-between border-b">
       <a href="/">
-        <img src={logo} alt="logo" width="100" />
+        <img src={logo} alt="logo" width="150" />
       </a>
     </header>
 	)

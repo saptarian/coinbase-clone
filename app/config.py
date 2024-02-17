@@ -45,9 +45,9 @@ class Config:
     # )
     # FLASK_BASE_URL = os.getenv('FLASK_BASE_URL', SERVER_NAME)
     
-    # CORS Configuration (adjust for your frontend URL)
-    FRONTEND_BASE_URL = os.getenv('FRONTEND_BASE_URL')
-    CORS_ORIGINS = [FRONTEND_BASE_URL]
+    # CORS Configuration (adjust for frontend URL)
+    cors = os.getenv('CORS_ACCEPTED', '*')
+    CORS_ORIGINS = cors.split(',')
 
     ########## JWT Configuration (for authentication) ##########
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'TH!5-W4$-@-JWT-SUP3R-$ECR3T-K3Y')
