@@ -1,4 +1,4 @@
-import requests
+import requests, os
 
 
 def loop_and_write(file, data, is_fiat):
@@ -12,8 +12,8 @@ def loop_and_write(file, data, is_fiat):
         ))
 
 
-def main():
-    url = 'http://localhost/cryptocurrency'
+def main(port):
+    url = f"http://localhost:{port}/cryptocurrency"
 
     with open('assets_seed.sql', 'w', encoding='utf-8') as ff:
         ff.write("INSERT INTO \"assets\"\n")
@@ -33,5 +33,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    port = 80
+    if len(os.sys.argv) > 1:
+        port = os.sys.argv[1] 
+
+    main(port)
 
