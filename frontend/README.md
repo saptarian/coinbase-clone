@@ -1,9 +1,6 @@
-# Coinbase Clone - Frontend
+# Coinbase Clone - Explore, Buy/Sell Cryptocurrency
 
-<p align="center">
-  A Coinbase clone, is a cryptocurrency investing application that allows users to buy and sell cryptocurrencies listed on the Coinbase exchange.
-</p>
-
+A Coinbase clone, is a cryptocurrency investing application that allows users to buy and sell cryptocurrencies listed on the Coinbase exchange.
 
 ## The Overview 🛠
 
@@ -14,10 +11,10 @@ This was both a practicing and learning experience.
 
 ## UI/UX ✨
 
-The UI/UX design heavily inspired by [Coinbase](https://coinbase.com/) expecially explore and dashboard pages.
-- The UI has made as close as possible to the Coinbase web application by view and navigating their web application.
-- I restricted my self to not inspect any single code on their website. 
-- I still dont know what is webfont and color code they used.
+The UI/UX design heavily inspired by [Coinbase](https://www.coinbase.com/explore) expecially explore and dashboard pages.
+The UI has made as close as possible to the Coinbase web application by view and navigating their web application.
+I restricted my self to not inspect any single code on their website. 
+I still dont know what is webfont and color code they used.
 
 
 ## Features ✨
@@ -47,23 +44,34 @@ The UI/UX design heavily inspired by [Coinbase](https://coinbase.com/) expeciall
 ### Front-end ✨
 
 - [React v18](https://facebook.github.io/react/)
-- [TypeScript](https://)
-- [Tanstack React Query v4](https://reacttraining.com/react-router/web)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tanstack React Query v4](https://tanstack.com/query)
 - [TailwindCSS](https://tailwindcss.com/)
-- [React Router DOM v6](https://reacttraining.com/react-router/web)
-- [Vite](https://)
-- [echarts](https://) 
-- and mini-chart [react-sparklines](https://)
+- [React Router v6](https://reactrouter.com/)
+- [Vite](https://vitejs.dev/)
+- [Apache ECharts](https://echarts.apache.org/) 
+- [react-sparklines](https://www.npmjs.com/package/react-sparklines)
 
 Entry point is at `frontend/src/main.tsx`.
 
 
+## Production Deployment 💻
+
+- Python >= 3.11 (minimum python version supported is 3.8)
+- PostgreSQL >= 16.1 (Production)
+- Redis >= 7.2
+- Nginx >= 1.25
+- Hashicorp Consul 1.17 (optional)
+- SQLite3 (Development)
+- Recommended to assign TLS certification such as Lets encrypt
+
+
 ## About the author
 
-- Sapta Rianza [saptaqur@gmail.com](mailto:saptaqur@gmail.com)
+Sapta Rianza [saptaqur@gmail.com](mailto:saptaqur@gmail.com)
 
 I am a self taught developer and have been freelancing for the last ~10 years.
-Currently insterested in dev-ops CI/CD workflow.
+Currently insterested in software engineering and DevOps cicd workflow.
 
 
 ## Contributing

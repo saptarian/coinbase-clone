@@ -2,7 +2,6 @@
 
 A Coinbase clone, is a cryptocurrency investing application that allows users to buy and sell cryptocurrencies listed on the Coinbase exchange.
 
-
 ## The Overview 🛠
 
 This project was a number of task which involved my self to develop application using the core technologies of python, flask, redis, postgresql, tanstack's react-query, tailwind css, react and typescript with as minimum number as possible of dependency module. As well as to operating using the core technologies of docker, bash script, production deployment, hashicorp consul, microservices, nginx and more. 
@@ -13,9 +12,9 @@ This was both a practicing and learning experience.
 ## UI/UX ✨
 
 The UI/UX design heavily inspired by [Coinbase](https://www.coinbase.com/explore) expecially explore and dashboard pages.
-- The UI has made as close as possible to the Coinbase web application by view and navigating their web application.
-- I restricted my self to not inspect any single code on their website. 
-- I still dont know what is webfont and color code they used.
+The UI has made as close as possible to the Coinbase web application by view and navigating their web application.
+I restricted my self to not inspect any single code on their website. 
+I still dont know what is webfont and color code they used.
 
 
 ## Features ✨
