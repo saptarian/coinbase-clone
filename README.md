@@ -48,7 +48,6 @@ I still dont know what is webfont and color code they used.
 - [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/) secure user authentication
 - [Flask-Cors](https://flask-cors.readthedocs.io/)
 - [gunicorn](https://gunicorn.org/)
-
 - [PostgreSQL](https://www.postgresql.org/)
 - [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)
 - [Redis](https://redis.io/)
@@ -56,7 +55,6 @@ I still dont know what is webfont and color code they used.
 - [Hashicorp Consul](https://www.consul.io/)
 - [Nginx](https://www.nginx.com/)
 - [SQLite3](https://www.sqlite.org/) Development only
-
 - [CoinMarketCap API](https://pro-api.coinmarketcap.com/)
 - [YahooFinance API](https://finance.yahoo.com)
 - [OpenExchangeRates API](https://openexchangerates.org/api/)
