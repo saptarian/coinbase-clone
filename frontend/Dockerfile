@@ -1,5 +1,4 @@
 FROM node:20.11.0-bookworm-slim AS assets
-LABEL maintainer="Sapta Rianza <saptaqur@gmail.com>"
 
 WORKDIR /app/frontend
 
@@ -10,22 +9,25 @@ RUN \
   --mount=type=cache,target=/var/cache/apt apt-get update \
   && apt-get install -y --no-install-recommends build-essential
 
-RUN pwd && whoami \
-  && rm -rf /usr/share/doc /usr/share/man \
+RUN \
+  rm -rf /usr/share/doc /usr/share/man \
   && groupmod -g "${GID}" node && usermod -u "${UID}" -g "${GID}" node \
   && mkdir -p /node_modules && chown node:node -R /node_modules /app
 
 USER node
 
-COPY --chown=node:node package*.json ./
+COPY --chown=node:node package*.json .
 
 RUN npm install
 
-ARG NODE_ENV="production"
-ENV NODE_ENV="${NODE_ENV}" \
+ARG NODE_ENV
+ARG API_BACKEND_SERVER
+ARG LOGO_BASE_URL
+
+ENV NODE_ENV="${NODE_ENV:-production}" \
     PATH="${PATH}:/node_modules/.bin" \
-    VITE_API_BACKEND_SERVER="http://localhost" \
-    VITE_LOGO_BASE_URL="https://s2.coinmarketcap.com/static/img/coins/64x64" \
+    VITE_API_BACKEND_SERVER="${API_BACKEND_SERVER:-http://localhost}" \
+    VITE_LOGO_BASE_URL="${LOGO_BASE_URL:-https://s2.coinmarketcap.com/static/img/coins/64x64}" \
     USER="node"
 
 COPY --chown=node:node . .

@@ -124,6 +124,8 @@ config_by_name = {
 
 
 def get_config():
+    # from dotenv import load_dotenv
+    # load_dotenv()
     environment = os.getenv('FLASK_ENV', 'default')
     print("Config Environment:", environment)
     return config_by_name[environment]

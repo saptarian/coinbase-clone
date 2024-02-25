@@ -12,8 +12,8 @@ def loop_and_write(file, data, is_fiat):
         ))
 
 
-def main(port):
-    url = f"http://localhost:{port}/cryptocurrency"
+def main(base_url):
+    url = f"{base_url}/cryptocurrency"
 
     with open('assets_seed.sql', 'w', encoding='utf-8') as ff:
         ff.write("INSERT INTO \"assets\"\n")
@@ -33,9 +33,9 @@ def main(port):
 
 
 if __name__ == '__main__':
-    port = 80
+    base_url = "http://localhost:80"
     if len(os.sys.argv) > 1:
-        port = os.sys.argv[1] 
+        base_url = os.sys.argv[1] 
 
-    main(port)
+    main(base_url)
 

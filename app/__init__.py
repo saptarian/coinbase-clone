@@ -78,7 +78,7 @@ def create_app() -> Flask:
         except (ConnectionRefusedError, ConnectionError) as e:
             match e:
                 case ConnectionError():
-                    return jsonify(message="Cache conn failed"), 500
+                    return jsonify(message="Cannot connect to Redis server"), 500
             return jsonify(message="ConnectionRefusedError"), 500
 
 

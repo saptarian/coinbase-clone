@@ -2,19 +2,21 @@
 
 A Coinbase clone, is a cryptocurrency investing application that allows users to buy and sell cryptocurrencies listed on the Coinbase exchange.
 
+`Live: [http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/](http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/)`
+
+
 ## The Overview 🛠
 
-This project was a number of task which involved my self to develop application using the core technologies of python, flask, redis, postgresql, tanstack's react-query, tailwind css, react and typescript with as minimum number as possible of dependency module. As well as to operating using the core technologies of docker, bash script, production deployment, hashicorp consul, microservices, nginx and more. 
-This Project took place over 120 working days.
-This was both a practicing and learning experience. 
+This project was a number of task which involved myself in developing applications using the core technologies of python, flask, redis, postgresql, tanstack's react-query, tailwind css, react and typescript with as minimum number as possible of dependency module. As well as to operating using the core technologies of docker, bash script, production deployment, hashicorp consul, microservices, nginx and more. 
+The project spanned 120 working days. This was both a practicing and a learning experience. 
 
 
 ## UI/UX ✨
 
-The UI/UX design heavily inspired by [Coinbase](https://www.coinbase.com/explore) expecially explore and dashboard pages.
+The UI/UX design was heavily inspired by [Coinbase](https://www.coinbase.com/explore) especially their explore and dashboard pages.
 The UI has made as close as possible to the Coinbase web application by view and navigating their web application.
-I restricted my self to not inspect any single code on their website. 
-I still dont know what is webfont and color code they used.
+I restricted myself from inspecting any code on their website.
+I still don't know which webfont and color codes they used.
 
 
 ## Features ✨
@@ -47,7 +49,7 @@ I still dont know what is webfont and color code they used.
 - [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/) for authentication and authorization
 - [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/) secure user authentication
 - [Flask-Cors](https://flask-cors.readthedocs.io/)
-- [gunicorn](https://gunicorn.org/)
+- [Gunicorn](https://gunicorn.org/)
 - [PostgreSQL](https://www.postgresql.org/)
 - [SQLAlchemy](https://github.com/sqlalchemy/sqlalchemy)
 - [Redis](https://redis.io/)
@@ -72,44 +74,43 @@ The backend is structured using the [Application Factory Pattern](https://flask.
 - [React Router v6](https://reactrouter.com/)
 - [Vite](https://vitejs.dev/)
 - [Apache ECharts](https://echarts.apache.org/) 
-- [react-sparklines](https://www.npmjs.com/package/react-sparklines)
+- [React-sparklines](https://www.npmjs.com/package/react-sparklines)
 
 Entry point is at `frontend/src/main.tsx`.
 
 
 ## Production Deployment 💻
 
-- Python >= 3.11 (minimum python version supported is 3.8)
+- Python >= 3.11
 - PostgreSQL >= 16.1 (Production)
 - Redis >= 7.2
 - Nginx >= 1.25
 - Hashicorp Consul 1.17 (optional)
 - SQLite3 (Development)
-- Recommended to assign TLS certification such as Lets encrypt
+- Ensure that TLS certification, such as Let's Encrypt, is assigned.
 
 
 ## QuickStart:
 
 ### Using Docker Compose
 
-Prerequirities:
+Prerequisites:
 
-- `Docker installed on your machine`
+- `Ensure that Docker is installed on your machine.`
 
 ```bash
-# clone the repo
+# Clone the repo
 $ git clone https://github.com/saptarian/coinbase-clone.git
 $ cd coinbase-clone
 
-# environtment variable (the defaults are fine enough)
+# Environtment variable (the defaults are fine enough)
 # Api Keys in section 3RD API are required in order to fully functionality 
 $ edit `.env.example` and save as `.env`
 $ edit `frontend/.env.example` and save as `frontend/.env`
 
-# Note: edit .env to swicth FLASK_ENV variable to 'production' instead 'default'
-# in order to use PostgreSQL instead SQLite3 
+# Note: edit .env to swicth FLASK_ENV variable to 'production' instead 'default' in order to use PostgreSQL instead SQLite3
 
-# configs (the defaults are fine enough)
+# Configs (the defaults are fine enough)
 $ - `app/config.py`
 $ - `app/gunicorn.py`
 $ - `nginx.conf`
@@ -120,93 +121,106 @@ $ - `frontend/nginx.conf`
 # - The first time you run this it's going to take 5-10 minutes depending on your internet connection speed and computer's hardware specs. That's because it's going to download a few Docker images and build the Python + dependencies.
 $ docker compose up --build
 
-# once the backend server running:
-# - init, migrate and upgrade the database by single command:
+# Once the backend server running:
+# Ensure everything are set up correctly by execute this command on new terminal
+$ curl -XGET http://localhost:5000/up/
+# No result means no error then you good to go
+
+# (init, migrate and upgrade) the database by single command:
 $ chmod +x run
 $ ./run db_init
 
-# run database generator script:
-$ python script/assets_seed_generator.py
+# Execute database generator script:
+$ python3 script/assets_seed_generator.py
 
-# use generated sql file to populate the database:
+# Use generated sql file to populate the database:
 $ ./run db_seed
 
 # To start the frontend in the same host:
 # open another terminal then run this command
-$ ./run fe:build
+$ ./run fe:build # OR $ ./run fe:build https://your-backend-base-url.com
 $ ./run fe:run
 ```
 
 Once it's done building and everything has booted up:
 - Access the app at: [http://localhost:8080](http://localhost:8080)
-- Check the backend services (flask app, redis, database) by command:
-```
-$ curl -XGET "http://localhost/up/"
-# if everything are set up correctly it will print empty result 
-``` 
+
 ```bash
 # To change env variable directly on running backend e.g.
 $ ./run putenv RATE_LIMIT 120
-# once success the config on backend app changed, the app will reload and running with new config automatically
+# Once success the config on backend app changed, the app will reload and running with new config automatically
 ```
 Look at file `run` for other useful command such as `reup`, `rebuild`, etc
 
 ### Running local development without docker
 
-Prerequirities:
+Prerequisites:
 
-- `Python >= 3.11 (minimum python version supported is 3.8)`
+- `Python >= 3.11`
 - `SQLite3 (for development it's required instead PostgreSQL)`
 - `Redis`
-- `Nodejs >= v21.6`
+- `Nodejs >= v20`
 
 ```bash
-# clone this repo
+# Clone this repo
 $ git clone https://github.com/saptarian/coinbase-clone.git
 $ cd coinbase-clone
 
-# create virtual environtment
-$ python -m venv venv 
+# Create virtual environtment
+$ python3 -m venv venv 
 
-# activate virtual environtment (Windows)
+# [Windows system] Activate virtual environtment
 $ `venv\\Scripts\\activate`
 
-# activate virtual environtment (*nix system)
+# [*uix system] Activate virtual environtment
 $ source venv/bin/activate
 
-# install python requirement modules
+# On *nix machine before going to the next step ensure you have installed some prerequisites:
+# - libpq-dev, python3-dev, gcc. It's depends on your linux machine to install these packages
+# [Red Hat-based distributions, Amazon Linux 2023]
+$ sudo yum update
+$ sudo yum install -y python3-devel postgresql-devel gcc 
+# [Debian related distributions, Ubuntu]
+$ sudo apt-get update
+$ sudo apt-get install -y python3-dev libpq-dev gcc
+
+# Install python requirement modules
 $ pip install -r requirements.txt
 
-# environtment variable (the defaults are fine enough)
+# Environtment variable (the defaults are fine enough)
 # Api Keys in section 3RD API is required in order to fully functionality 
 $ edit `.env.example` and save as `.env`
 $ edit `frontend/.env.example` and save as `frontend/.env`
 
-# configs (the defaults are fine enough)
+# Configs (the defaults are fine enough)
 $ - `app/config.py`
 $ - `app/gunicorn.py`
 $ - `nginx.conf`
 $ - `frontend/nginx.conf`
 
-# database init
+# Database init
 $ flask --app run.py db init
 
-# run database migrations
+# Run database migrations
 $ flask --app run.py db migrate
 $ flask --app run.py db upgrade
 
-# before start backend server, make sure Redis server has running on it's default port
+# Before going to the next step ensure your Redis server has running on it's default port
 
-# start flask application server
+# Start flask application server
 $ flask --app run.py run
 
-# once the backend server running open new terminal on the same directory 'coinbase-clone'
-# generate database seed and provide used port number e.g. 5000
-$ python script/assets_seed_generator.py 5000
+# Once the backend server running open new terminal on the same directory 'coinbase-clone'
+# Generate database seed by execute script with flask base url e.g. http://localhost:5000
+$ python3 script/assets_seed_generator.py http://localhost:5000
 
-# use generated sql file to populate the database with accepted real world cyptocurrencies so the assets are ready to user to buy/sell
+# Use generated sql file to populate the database with accepted real world cyptocurrencies so the assets are ready to user to buy/sell
+# SQLite3
+$ sqlite3 app/coinbase_clone.db < assets_seed.sql
+# PostgreSQL
+$ psql -U "coinbase" -d "coinbase" < "assets_seed.sql"
 
-# open new terminal to start frontend in development mode:
+# Open new terminal to start frontend in development mode:
 $ cd frontend
 $ npm install
 $ npm run dev
@@ -215,7 +229,7 @@ $ npm run dev
 Check the backend services (flask app, redis, database) by command:
 ```bash
 $ curl -XGET http://localhost:5000/up/
-# if everything are set up correctly it will print empty result 
+# No result means no error then everything are set up correctly
 ``` 
 
 
@@ -224,7 +238,7 @@ $ curl -XGET http://localhost:5000/up/
 Sapta Rianza [saptaqur@gmail.com](mailto:saptaqur@gmail.com)
 
 I am a self taught developer and have been freelancing for the last ~10 years.
-Currently insterested in software engineering and DevOps cicd workflow.
+Currently interested in DevOps CI/CD workflow.
 
 
 ## Contributing

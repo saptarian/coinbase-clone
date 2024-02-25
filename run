@@ -111,7 +111,11 @@ function getenv {
 }
 
 function fe:build {
-  docker build -t frontend:latest ./frontend
+  docker build \
+  --build-arg NODE_ENV=production \
+  --build-arg API_BACKEND_SERVER="${@:-http://localhost}" \
+  --build-arg LOGO_BASE_URL=https://s2.coinmarketcap.com/static/img/coins/64x64 \
+  -t frontend:latest ./frontend
 }
 
 function fe:run {
@@ -124,9 +128,7 @@ function fe:stop {
 
 function help {
   printf "%s <task> [args]\n\nTasks:\n" "${0}"
-
   compgen -A function | grep -v "^_" | cat -n
-
   printf "\nExtended help:\n  Each task has comments for general usage\n"
 }
 
