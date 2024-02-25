@@ -1,8 +1,0 @@
-.git/
-node_modules/
-dist/
-src/app/
-
-.dockerignore
-.env*
-docker-compose.override.yml
