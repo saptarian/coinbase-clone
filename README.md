@@ -2,7 +2,7 @@
 
 A Coinbase clone, is a cryptocurrency investing application that allows users to buy and sell cryptocurrencies listed on the Coinbase exchange.
 
-`Live: [http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/](http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/)`
+[`Live: http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/`](http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/)
 
 
 ## The Overview 🛠
