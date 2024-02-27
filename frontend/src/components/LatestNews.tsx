@@ -17,9 +17,9 @@ const LatestNews = ({title, limit=5}: {
         </h1>
       : ''}
       {news ? news.map(({url, title, description, thumbnail, createdAt}, idx) => (
-        <div key={idx} className="flex gap-3 py-3 px-5">
-          <span className="w-[40%] flex-none">
-            <img src={thumbnail} alt="" className="" />
+        <div key={idx} className="flex flex-col sm:flex-row gap-3 py-3 px-5">
+          <span className="sm:w-[40%] sm:flex-none">
+            <img src={thumbnail} />
           </span>
           <div className="flex flex-col">
             <div className="grow">
@@ -68,46 +68,48 @@ export const NewsCard = ({title, limit=3}: {
           {title}
         </h1>
       : ''}
-      {news ? news.map(({url, title, description, thumbnail, createdAt}, idx) => (
-        <div key={idx} className="flex flex-col gap-3 
-          py-3 px-5 w-full">
-          <span className="w-full flex-none">
-            <img src={thumbnail} alt="" />
-          </span>
-          <div className="flex flex-col">
-            <a href={url} target="_blank" className="">
-              <h2 className="font-medium text-lg pb-1.5
-                hover:underline"> 
-                {title.length 
-                  ? `${title.slice(0,48)}...`
+      <div className="flex flex-wrap">
+        {news ? news.map(({url, title, description, thumbnail, createdAt}, idx) => (
+          <div key={idx} className="flex flex-col gap-3 
+            py-3 px-5 w-[280px] grow shrink-0">
+            <span className="w-full flex-none">
+              <img src={thumbnail} alt="" />
+            </span>
+            <div className="flex flex-col">
+              <a href={url} target="_blank" className="">
+                <h2 className="font-medium text-lg pb-1.5
+                  hover:underline"> 
+                  {title.length 
+                    ? `${title.slice(0,48)}...`
+                    : '...'
+                  } 
+                </h2>
+              </a>
+              <p className=""> 
+                {description.length 
+                  ? `${description.slice(0,64)}...`
                   : '...'
                 } 
-              </h2>
-            </a>
-            <p className=""> 
-              {description.length 
-                ? `${description.slice(0,64)}...`
-                : '...'
-              } 
-            </p>
-            <small className="mt-2 text-stone-500">
-              {createdAt}
-            </small>
+              </p>
+              <small className="mt-2 text-stone-500">
+                {createdAt}
+              </small>
+            </div>
           </div>
-        </div>
-      )) : Array(2).fill(0).map((_,idx) => (
-        <div key={idx} 
-          className="w-60 py-3 space-y-2 px-5">
-          <div className="">
-            <Skeleton height="6rem" 
-              enableAnimation={isLoading} />
+        )) : Array(2).fill(0).map((_,idx) => (
+          <div key={idx} 
+            className="w-60 py-3 space-y-2 px-5">
+            <div className="">
+              <Skeleton height="6rem" 
+                enableAnimation={isLoading} />
+            </div>
+            <div className="">
+              <Skeleton count={3} 
+                enableAnimation={isLoading} />
+            </div>
           </div>
-          <div className="">
-            <Skeleton count={3} 
-              enableAnimation={isLoading} />
-          </div>
-        </div>
-      )) }
+        )) }
+      </div>
     </div>
   )
 }

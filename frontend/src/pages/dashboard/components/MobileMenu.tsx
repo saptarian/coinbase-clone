@@ -17,7 +17,7 @@ const MobileMenu: React.FC<{
       bg-white flex flex-col-reverse md:hidden">
       <div className="border-t py-1">
         <div className="flex gap-2 justify-between mx-auto 
-          max-w-sm">
+          max-w-sm px-3">
           {mobileMenuLinks.map(({label, path, icon}) => (
             <MenuItem
               key={label}

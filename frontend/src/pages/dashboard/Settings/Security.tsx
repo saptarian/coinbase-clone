@@ -25,8 +25,9 @@ export function Security() {
   // console.log('Security.render', primaryNumber)
 
   return (
-    <div className="px-5 py-12 space-y-6 mx-auto max-w-screen-md">
-      <section className="container-section space-y-2 p-8">
+    <div className="sm:px-5 py-12 space-y-6 sm:mx-auto max-w-screen-md">
+      <section className="sm:container-section max-sm:border-y 
+        space-y-2 px-8 py-8">
         <h4 className="text-blue-600 font-bold">
           Security Recommendations
         </h4>
@@ -56,8 +57,8 @@ export function Security() {
           </button>
         </div>
       </section>
-      <section className="container-section flex gap-3
-        items-center py-5 px-8">
+      <section className="sm:container-section max-sm:border-y 
+        flex gap-3 items-center py-5 px-8">
         <span className="grow">
           <h3 className="font-medium">
             Learn how to protect yourself
@@ -74,19 +75,20 @@ export function Security() {
           <AngleRight className="w-2"/>
         </a>
       </section>
-      <section className="container-section px-8 pt-2 pb-8">
+      <section className="sm:container-section max-sm:border-y 
+        px-8 pt-2 pb-8">
         <h2 className="text-3xl font-medium mt-6 mb-2">
           Password
         </h2>
-        <div className="p-5 flex gap-8 items-center 
-          justify-between border rounded-sm">
+        <div className="p-5 flex sm:gap-8 gap-5 sm:items-center flex-col
+          sm:flex-row justify-between border rounded-sm">
           <p className="leading-5">
             Remember not to store your password in your email
             or cloud and don't share it with anyone
           </p>
           <Modal isCenterScreen hideClose
             trigger={
-              <button className="secondary-btn-sm">
+              <button className="secondary-btn-sm w-full">
                 Change password
               </button>
             }>
@@ -358,8 +360,8 @@ const ManagePhoneNumbersModal = ({onExit, phones}: {
       <div className="w-full">
         {phones?.map(({number, is_primary, created_at}) => (
           <div key={number}
-            className="px-5 py-3 flex items-center justify-between
-              border-b">
+            className="px-5 py-3 flex sm:items-center justify-between
+              border-b flex-col sm:flex-row gap-3">
             <div className="w-fit max-w-[10rem] mr-6">
               <p className="font-medium">
                 {`+xx xxx xxxx xx${number.slice(-2)}`}
@@ -374,25 +376,25 @@ const ManagePhoneNumbersModal = ({onExit, phones}: {
               ) : ''}
             </div>
             <div className="flex gap-2">
-              <Form method="post">
+              <Form method="post" className="w-full">
                 <input type="hidden" name="action"
                   value="UPDATE_PRIMARY_PHONE" />
                 <input type="hidden" name="number" 
                   value={number} />
                 <button type="submit" 
                   disabled={is_primary || isSubmiting}
-                  className="secondary-btn">
+                  className="secondary-btn w-full">
                   Primary
                 </button>
               </Form>
-              <Form method="post">
+              <Form method="post" className="w-full">
                 <input type="hidden" name="action"
                   value="DELETE_PHONE" />
                 <input type="hidden" name="number" 
                   value={number} />
                 <button type="submit" 
                   disabled={is_primary || isSubmiting}
-                  className="secondary-btn">
+                  className="secondary-btn w-full">
                   Remove
                 </button>
               </Form>

@@ -340,8 +340,9 @@ const FormPhotoModal = ({onExit, avatar}: {
         </button>
       </div>
       <Form method="post" encType="multipart/form-data"
-        className="p-5 flex items-center gap-5">
-        <div className="w-32 h-32 bg-slate-200
+        className="p-5 flex items-center gap-5 flex-col
+          sm:flex-row">
+        <div className="w-32 h-32 flex-none bg-slate-200
           rounded-full overflow-hidden">
           {avatarURL ? (
             <img src={avatarURL} />

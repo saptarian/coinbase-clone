@@ -269,7 +269,7 @@ export async function getIdMap(
 {
   const queries = new URLSearchParams(params)
   return await api.get(`${CRYPTO_PATH}/id-map${
-      queries.size ? '?' + queries.toString() : ''
+      Object.keys(params).length ? '?' + queries.toString() : ''
     }`
   )
 }
@@ -282,7 +282,7 @@ export async function getQuote(
   const queries = new URLSearchParams(params)
   return await authRequired(() => 
     api.get(`${CRYPTO_PATH}/quote${
-      queries.size ? '?' + queries.toString() : ''
+      Object.keys(params).length ? '?' + queries.toString() : ''
     }`
   ))
 }
@@ -294,7 +294,7 @@ export async function getQuotes(
 {
   const queries = new URLSearchParams(params)
   return await api.get(`${CRYPTO_PATH}/quotes${
-      queries.size ? '?' + queries.toString() : ''
+      Object.keys(params).length ? '?' + queries.toString() : ''
     }`
   )
 }
@@ -307,7 +307,7 @@ export async function getMetadata(
   const queries = new URLSearchParams(params)
   return await authRequired(() => 
     api.get(`${CRYPTO_PATH}/metadata${
-      queries.size ? '?' + queries.toString() : ''
+      Object.keys(params).length ? '?' + queries.toString() : ''
     }`
   ))
 }
@@ -348,7 +348,7 @@ export async function getListCrypto(
 {
   const queries = new URLSearchParams(params)
   return await api.get(`${CRYPTO_PATH}/list-crypto${
-      queries.size ? '?' + queries.toString() : ''
+      Object.keys(params).length ? '?' + queries.toString() : ''
     }`
   )
 }

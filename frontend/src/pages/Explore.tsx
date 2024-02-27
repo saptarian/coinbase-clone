@@ -65,7 +65,7 @@ export function Explore()
           <BottomSection />
         </div>
 
-        <aside className="hidden lg:block lg:w-[380px] shrink-0">
+        <aside className="lg:w-[380px] shrink-0 flex flex-col">
           <NewCoins />
           {/*<ExploreAssets coins={coins} title='Trending'/>*/}
           <div className="p-3">
@@ -99,7 +99,7 @@ const TableOptions = ({onSelCurrency, onSelRange}: {
   const [rates,] = useFiatRates()
 
   return (
-    <div className="space-x-2">
+    <div className="flex gap-2">
       <select name="currency" id="currency" 
         className="bg-slate-100 py-2 pl-4 pr-8
         rounded-full font-medium text-sm border-0"
@@ -209,12 +209,16 @@ const TableAssetWithSearchAndPagination = ({
   return (
     <>
       {/*<SearchFieldMemo onDoneTyping={onSetSearch} />*/}
-      <div className="flex items-center px-6 py-4">
-        <h2 className="font-medium grow
-          md:text-2xl mb-2 text-lg">
-          Crypto prices <small className="text-gray-500 px-2">
-          {totalAssets ? `${totalAssets} assets` : ''}</small>
-        </h2>
+      <div className="flex items-center px-6 py-4 font-medium">
+        <div className="grow mb-2 flex flex-col 
+          sm:flex-row items-baseline">
+          <h2 className="md:text-2xl text-lg pr-1.5">
+            Crypto prices
+          </h2>
+          <small className="text-gray-500">
+            {totalAssets ? `${totalAssets} assets` : ''}
+          </small>
+        </div>
         <TableOptions 
           onSelRange={(e) => {
             setRange(parseInt(e.target.value))

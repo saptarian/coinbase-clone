@@ -1,24 +1,25 @@
 {
-  "name": "frontend",
+  "name": "coinbase-clone",
+  "description": "A Coinbase clone, is a cryptocurrency investing application.",
+  "version": "1.1.0",
+  "author": "Sapta Rianza <saptaqur@gmail.com>",
+  "license": "MIT",
   "private": true,
-  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode production --assetsDir assets_dir",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview --port 8080"
   },
   "dependencies": {
     "@tanstack/query-sync-storage-persister": "^4.36.1",
     "@tanstack/react-query": "^4.33.0",
     "@tanstack/react-query-persist-client": "^4.36.1",
     "axios": "^1.5.0",
-    "chart.js": "^4.4.0",
     "echarts": "^5.4.3",
     "echarts-for-react": "^3.0.2",
     "react": "^18.2.0",
-    "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
     "react-loading-skeleton": "^3.3.1",

@@ -13,6 +13,7 @@ export const requestInterceptor = (
   if (token) {
     config.headers.set('Authorization', `Bearer ${token}`)
   }
+  config.headers.set('X-Api', 'v1')
   return config
 }
 

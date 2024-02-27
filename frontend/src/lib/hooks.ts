@@ -412,9 +412,9 @@ export const useSearchInput = (onDoneTyping: (s: string) => void) =>
   const keyword = useDebounce<string>(value)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
-  React.useEffect(() => {
-    if (inputRef.current) inputRef.current.focus()
-  }, [])
+  // React.useEffect(() => {
+  //   if (inputRef.current) inputRef.current.focus()
+  // }, [])
 
   React.useEffect(() => {
     if (value === keyword) {
