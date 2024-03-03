@@ -1,14 +1,31 @@
 # Coinbase Clone - Explore, Buy/Sell Cryptocurrency
 
-A Coinbase clone, is a cryptocurrency investing application that allows users to buy and sell cryptocurrencies listed on the Coinbase exchange.
+A Coinbase clone is a cryptocurrency investment application that enables users to buy and sell cryptocurrencies listed on the Coinbase exchange.
 
-[`Live: http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/`](http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/)
+[`Live: http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com`](http://coinbase-842009998.ap-southeast-1.elb.amazonaws.com/)
+
+[`Video Demo: https://veed.io/view/14f4e5fe-fe29-442e-8761-1639732e4d1f`](https://veed.io/view/14f4e5fe-fe29-442e-8761-1639732e4d1f)
+
+<div align="left">
+	<a href="https://veed.io/view/14f4e5fe-fe29-442e-8761-1639732e4d1f" target="_blank">
+		<img src="https://s9.gifyu.com/images/SFJpr.gif" height="350" />
+	</a>
+	<img width="3" />
+	<a href="https://veed.io/view/9656bde0-0074-4484-8435-73aad2d1b60b" target="_blank">
+		<img src="https://s9.gifyu.com/images/SFJpY.gif" height="350" />
+	</a>
+</div>
 
 
 ## The Overview 🛠
 
-This project was a number of task which involved myself in developing applications using the core technologies of python, flask, redis, postgresql, tanstack's react-query, tailwind css, react and typescript with as minimum number as possible of dependency module. As well as to operating using the core technologies of docker, bash script, production deployment, hashicorp consul, microservices, nginx and more. 
-The project spanned 120 working days. This was both a practicing and a learning experience. 
+This project was a number of task which involved myself in developing applications using the core technologies of Python, Flask, Redis, PostgreSQL, Tanstack's React-query, Tailwind CSS, React and Typescript with as minimum number as possible of dependency module. As well as to operating using the core technologies of Docker, bash script, production deployment, Hashicorp Consul, microservices, Nginx and more.
+The project lasted 120 working days without using any AI tools. This was both a practicing and a learning experience.
+
+
+### My motivation for building this:
+
+Initially, I was interested in building an application related to finance, which is currently trending. The idea was to create a simplified version of an existing app. But why choose Coinbase? Although I’m not a Coinbase user and haven’t actively used similar apps before, especially for crypto transactions, this presented a new challenge for me: understanding the world of cryptocurrency. Another challenge arose when I discovered that Coinbase is inaccessible in my country. While direct access wasn’t crucial, I needed an overview of the app’s functionalities. My solution involved searching for screen captures on Google Images and watching YouTube videos to understand the latest interface and key actions, like transactions. VPNs weren’t very helpful since registration required identity verification and phone numbers from supported countries. Lastly, I refrained from inspecting any code on the Coinbase website, opting instead to mimic what I observed—similar but not identical. Overall, this project served as both a learning experience and a portfolio piece for me.
 
 
 ## UI/UX ✨
@@ -28,17 +45,18 @@ I still don't know which webfont and color codes they used.
 - Thousands real world active cryptocurrencies available 
 - Capability to simulate real time cryptocurrency trades with real time market price
 - Line charts display price data over time
-- Lightweight and fast application using cache in browser and backend (redis)
+- Lightweight and fast application using cache in browser and backend (Redis)
 - Highly scalable using docker swarm or kubernetes
 - Configurable Rate limiter
 - In production, dev team can change application config easily and the applications will reload auatomagicaly
 - Idempotency order workflow, to avoid user accidentaly pay twice for same order
 - Search any cryptocurrencies by string is optimized 
 - Heavily responsive design built with Tailwind CSS
-- SPA/Single page application (CSR) maybe will switch to SSR in near future for more optimization
+- SPA/Single page application (CSR)
 - Strongly typed React components with TypeScript
 - Cryptocurrencies pagination 
 - Cryptocurrencies infinity scroll 
+- Automatically log out users after a period of inactivity
 
 
 ## Tech stack 🛠
@@ -238,7 +256,7 @@ $ curl -XGET http://localhost:5000/up/
 Sapta Rianza [saptaqur@gmail.com](mailto:saptaqur@gmail.com)
 
 I am a self taught developer and have been freelancing for the last ~10 years.
-Currently interested in DevOps CI/CD workflow.
+Currently interested in Backend Engineering and DevOps CI/CD workflow.
 
 
 ## Contributing

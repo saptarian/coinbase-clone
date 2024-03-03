@@ -32,7 +32,7 @@ ENV NODE_ENV="${NODE_ENV:-production}" \
 
 COPY --chown=node:node . .
 
-RUN npm run build --omit=dev
+RUN npm run build
 
 FROM nginx:1.25.3-alpine
 

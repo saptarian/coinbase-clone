@@ -6,8 +6,7 @@ ARG UID=1000
 ARG GID=1000
 
 RUN \
-  --mount=type=cache,target=/var/cache/apt \
-  apt-get update \
+  --mount=type=cache,target=/var/cache/apt apt-get update \
   && apt-get install -y --no-install-recommends build-essential curl libpq-dev gcc
 
 RUN \
