@@ -16,43 +16,42 @@ A Coinbase clone is a cryptocurrency investment application that enables users t
 
 ## The Overview 🛠
 
-This project was a number of task which involved myself in developing applications using the core technologies of Python, Flask, Redis, PostgreSQL, Tanstack's React-query, Tailwind CSS, React and Typescript with as minimum number as possible of dependency module. As well as to operating using the core technologies of Docker, bash script, production deployment, Hashicorp Consul, microservices, Nginx and more.
+This project was a number of task which involved myself in developing applications using the core technologies of Python, Flask, Redis, PostgreSQL, Tanstack's React-query, Tailwind CSS, React and Typescript with as minimum-number as possible of dependency module. As well as to operating using the core technologies of Docker, bash script, production deployment, Hashicorp Consul, microservices, Nginx and more.
 The project lasted 120 working days without using any AI tools. This was both a practicing and a learning experience.
 
 
 ### My motivation for building this:
 
-Initially, I was interested in building an application related to finance, which is currently trending. The idea was to create a simplified version of an existing app. But why choose Coinbase? Although I’m not a Coinbase user and haven’t actively used similar apps before, especially for crypto transactions, this presented a new challenge for me: understanding the world of cryptocurrency. Another challenge arose when I discovered that Coinbase is inaccessible in my country. While direct access wasn’t crucial, I needed an overview of the app’s functionalities. My solution involved searching for screen captures on Google Images and watching YouTube videos to understand the latest interface and key actions, like transactions. VPNs weren’t very helpful since registration required identity verification and phone numbers from supported countries. Lastly, I refrained from inspecting any code on the Coinbase website, opting instead to mimic what I observed—similar but not identical. Overall, this project served as both a learning experience and a portfolio piece for me.
+Initially, I was interested in building an application related to finance, which is currently trending. The idea was to create a simplified version of an existing app. But why choose Coinbase? Although I’m not a Coinbase user and haven’t actively used similar apps before, especially for crypto transactions, this presented a new challenge for me: understanding the world of cryptocurrency. Another challenge arose when I discovered that Coinbase is inaccessible in my country. While direct access wasn’t crucial, I needed an overview of the app’s functionalities. My solution involved searching for screen captures on Google Images and watching YouTube videos to understand the latest interface and key actions, like transactions. VPNs weren’t very helpful since registration required identity verification and phone number from supported countries. Lastly, I refrained from inspecting any code on the Coinbase website, opting instead to mimic what I observed—similar but not identical. Overall, this project served as both a learning experience and a portfolio piece for me.
 
 
 ## UI/UX ✨
 
 The UI/UX design was heavily inspired by [Coinbase](https://www.coinbase.com/explore) especially their explore and dashboard pages.
-The UI has made as close as possible to the Coinbase web application by view and navigating their web application.
-I restricted myself from inspecting any code on their website.
-I still don't know which webfont and color codes they used.
+The UI has made looking as close as possible to the Coinbase web application by view and navigating their web application.
+I restricted myself from inspecting any code on their website and still don't know which webfont and color codes they used.
 
 
 ## Features ✨
 
-- Secure user authentication using JWT token and BCrypt
-- Personal dashboard displaying current asset holdings, transaction history and more
-- Personal dashboard displaying identity, profile and more
-- Real-time and historical price data in USD and top most used world currency
-- Thousands real world active cryptocurrencies available 
+- Secure user authentication
+- Dashboard preview asset holdings, transaction history and more
+- Personal dashboard, identity, profile and settings
+- Real-time and historical price data in USD and a few currencies
+- Thousands real world active cryptocurrencies 
 - Capability to simulate real time cryptocurrency trades with real time market price
 - Line charts display price data over time
-- Lightweight and fast application using cache in browser and backend (Redis)
-- Highly scalable using docker swarm or kubernetes
+- Lightweight and fast by using cache in client (browser) and backend server (Redis)
+- Highly scalable
 - Configurable Rate limiter
-- In production, dev team can change application config easily and the applications will reload auatomagicaly
-- Idempotency order workflow, to avoid user accidentaly pay twice for same order
+- In production, dev-team can change config by execute a single command then the app will reload auatomagicaly with new config
+- Idempotency concept to avoid user accidentaly pay twice for same order
 - Search any cryptocurrencies by string is optimized 
 - Heavily responsive design built with Tailwind CSS
 - SPA/Single page application (CSR)
 - Strongly typed React components with TypeScript
-- Cryptocurrencies pagination 
-- Cryptocurrencies infinity scroll 
+- Cryptocurrencies big-table pagination 
+- Cryptocurrencies big-table infinity scroll 
 - Automatically log out users after a period of inactivity
 
 
@@ -61,8 +60,8 @@ I still don't know which webfont and color codes they used.
 ### Back-end 💻
 
 - [Flask v2.3](https://flask.palletsprojects.com/)
-- [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/) for authentication and authorization
-- [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/) secure user authentication
+- [Flask-JWT-Extended](https://flask-jwt-extended.readthedocs.io/)
+- [Flask-Bcrypt](https://flask-bcrypt.readthedocs.io/)
 - [Flask-Cors](https://flask-cors.readthedocs.io/)
 - [Gunicorn](https://gunicorn.org/)
 - [PostgreSQL](https://www.postgresql.org/)
@@ -77,7 +76,8 @@ I still don't know which webfont and color codes they used.
 - [OpenExchangeRates API](https://openexchangerates.org/api/)
 - [CryptoNews API](https://cryptocurrency-news2.p.rapidapi.com)
 
-The backend is structured using the [Application Factory Pattern](https://flask.palletsprojects.com/en/3.0.x/patterns/appfactories/). The entry point is the `create_app()` method in `run.py` (`wsgi.py` in production).
+The backend is structured using the [Application Factory Pattern](https://flask.palletsprojects.com/en/3.0.x/patterns/appfactories/). 
+The entry point is the `create_app()` method in `run.py` (`wsgi.py` in production).
 
 
 ### Front-end ✨
@@ -133,13 +133,14 @@ $ - `frontend/nginx.conf`
 
 # Build and start everything:
 # - Make sure docker service is running!
-# - The first time you run this it's going to take 5-10 minutes depending on your internet connection speed and computer's hardware specs. That's because it's going to download a few Docker images and build the Python + dependencies.
+# - The first time you run this it's going to take 5-10 minutes depending on your internet connection speed and computer's hardware specs.
+# 	That's because it's going to download a few Docker images and build the Python + dependencies.
 $ docker compose up --build
 
 # Once the backend server running:
 # Ensure everything are set up correctly by execute this command on new terminal
 $ curl -XGET http://localhost:5000/up/
-# No result means no error then you good to go
+# No result means no error then you are good to go next step
 
 # (init, migrate and upgrade) the database by single command:
 $ chmod +x run
@@ -165,7 +166,7 @@ Once it's done building and everything has booted up:
 $ ./run putenv RATE_LIMIT 120
 # Once success the config on backend app changed, the app will reload and running with new config automatically
 ```
-Look at file `run` for other useful command such as `reup`, `rebuild`, etc
+Inspect file `run` for other useful command such as `reup`, `rebuild`, etc
 
 ### Running local development without docker
 
@@ -229,7 +230,7 @@ $ flask --app run.py run
 # Generate database seed by execute script with flask base url e.g. http://localhost:5000
 $ python3 script/assets_seed_generator.py http://localhost:5000
 
-# Use generated sql file to populate the database with accepted real world cyptocurrencies so the assets are ready to user to buy/sell
+# Use generated sql file to populate the database with thousands of active real-world cyptocurrencies
 # SQLite3
 $ sqlite3 app/coinbase_clone.db < assets_seed.sql
 # PostgreSQL
@@ -251,9 +252,7 @@ $ curl -XGET http://localhost:5000/up/
 ## About the author
 
 Sapta Rianza [saptaqur@gmail.com](mailto:saptaqur@gmail.com)
-
-I am a self taught developer and have been freelancing for the last ~10 years.
-Currently interested in Backend Engineering and DevOps CI/CD workflow.
+I am a new self taught developer.
 
 
 ## Contributing
