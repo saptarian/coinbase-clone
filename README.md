@@ -6,15 +6,15 @@ A Coinbase clone is a cryptocurrency investment application that enables users t
 
 <div align="left">
 	<a href="https://veed.io/view/14f4e5fe-fe29-442e-8761-1639732e4d1f" target="_blank">
-		<img src="https://github.com/saptarian/coinbase-clone/assets/140604879/26c8523a-c158-4934-96c0-5cfe80d2b9d4" height="350px" />
+		<img src="https://github.com/saptarian/coinbase-clone/assets/140604879/26c8523a-c158-4934-96c0-5cfe80d2b9d4" height="300px" />
 	</a>
 	<img width="5px" />
-	<img src="https://github.com/saptarian/coinbase-clone/assets/140604879/63a5b622-b4e6-4916-b697-576d01efe42e" height="350px" />
+	<img src="https://github.com/saptarian/coinbase-clone/assets/140604879/63a5b622-b4e6-4916-b697-576d01efe42e" height="300px" />
 
 </div>
 
 
-## The Overview 🛠
+## Overview 🛠
 
 This project was a number of task which involved myself in developing applications using the core technologies of Python, Flask, Redis, PostgreSQL, Tanstack's React-query, Tailwind CSS, React and Typescript with as minimum-number as possible of dependency module. As well as to operating using the core technologies of Docker, bash script, production deployment, Hashicorp Consul, microservices, Nginx and more.
 The project lasted 120 working days without using any AI tools. This was both a practicing and a learning experience.
