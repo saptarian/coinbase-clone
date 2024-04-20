@@ -1,4 +1,5 @@
 import os, datetime
+from distutils.util import strtobool
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -63,6 +64,7 @@ class Config:
     REDIS_PORT = os.getenv('REDIS_PORT', 6379)
     REDIS_DB = os.getenv('REDIS_DB', 0)
     REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+    REDIS_SSL = bool(strtobool(os.getenv("REDIS_SSL", "false")))
 
     ########## Celery Configuration ##########
     CELERY_ENABLE_UTC = True

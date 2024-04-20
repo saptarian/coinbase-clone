@@ -14,7 +14,8 @@ class RedisExt(object):
             host=app.config.get('REDIS_HOST'),
             port=app.config.get('REDIS_PORT'),
             db=app.config.get('REDIS_DB'),
-            password=app.config.get('REDIS_PASSWORD')
+            password=app.config.get('REDIS_PASSWORD'),
+            ssl=app.config.get('REDIS_SSL')
         )
         if not hasattr(app, "extensions"):
             app.extensions = {}  # pragma: no cover
