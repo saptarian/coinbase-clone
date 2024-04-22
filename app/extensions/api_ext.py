@@ -45,7 +45,7 @@ class ApiExt(object):
             )),
             ('yahoo', YahooApiService(
                 base_url= app.config.get('YAHOO_FINANCE_BASE_URL'),
-                headers= {"User-Agent": "python-requests", "Accept": "*/*"},
+                headers= {"User-Agent": "curl/7.83.1", "Accept": "*/*"},
             ))
         ])
 
@@ -159,17 +159,20 @@ class ApiService(object):
         headers: Optional[dict] = None,
         jsonify: bool = True
     ):
+        used_headers = headers or self.headers
+
         from urllib.parse import urlencode
         print((
             f"=> fetching: {base_url or self.base_url}"
             f"{path}{('?'+urlencode(params)) if params else ''}\n"
+            f"headers: {used_headers}\n"
         ))
         try:
             response = requests.get(
                 f'{base_url or self.base_url}{path}', 
                 timeout= self.request_config.timeout,
                 params= params,
-                headers= headers or self.headers
+                headers= used_headers
             )
             if response.status_code >= 400:
                 print(f'{response.status_code}: {response.reason}')

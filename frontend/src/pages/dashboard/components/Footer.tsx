@@ -40,7 +40,7 @@ const Footer: React.FC = () => {
             Need help
           </a>
           <small className="text-gray-600
-          md:hidden">2023 Coinbase</small>
+          md:hidden">2024 Coinbase</small>
         </div>
       </div>
     </footer>
